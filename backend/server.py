@@ -822,6 +822,273 @@ async def update_user_role(user_id: str, role: UserRole, admin: dict = Depends(r
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User role updated"}
 
+# ============= ALCOHOL CALCULATION MODULE =============
+
+class AlcoholType(str, Enum):
+    WINE = "wine"
+    BEER = "beer"
+    SPIRITS = "spirits"
+    LIQUEUR = "liqueur"
+    OTHER = "other"
+
+class AlcoholCalculationRequest(BaseModel):
+    product_name: str
+    alcohol_type: AlcoholType
+    volume_ml: float  # Volume per container in milliliters
+    alcohol_percentage: float  # ABV %
+    quantity: int  # Number of bottles/containers
+    cif_value: float  # Cost, Insurance, Freight value in USD
+    country_of_origin: str
+    brand_label: Optional[str] = None
+    has_liquor_license: bool = False
+
+class AlcoholCalculationResult(BaseModel):
+    id: str
+    product_name: str
+    alcohol_type: AlcoholType
+    hs_code: str
+    hs_description: str
+    quantity: int
+    total_volume_liters: float
+    alcohol_percentage: float
+    pure_alcohol_liters: float
+    cif_value: float
+    import_duty: float
+    import_duty_rate: str
+    excise_duty: float
+    excise_calculation: str
+    vat: float
+    vat_rate: str
+    license_fee: float
+    total_landed_cost: float
+    breakdown: Dict[str, Any]
+    warnings: List[str]
+    requires_permit: bool
+    created_at: datetime
+
+# Bahamas Alcohol Duty Rates (CMA Compliant)
+ALCOHOL_RATES = {
+    "wine": {
+        "hs_code": "2204.21",
+        "hs_description": "Wine of fresh grapes, in containers holding 2L or less",
+        "import_duty_rate": 0.35,  # 35%
+        "excise_per_liter": 3.50,  # $3.50 per liter
+        "requires_permit": False
+    },
+    "beer": {
+        "hs_code": "2203.00",
+        "hs_description": "Beer made from malt",
+        "import_duty_rate": 0.35,  # 35%
+        "excise_per_liter": 1.50,  # $1.50 per liter
+        "requires_permit": False
+    },
+    "spirits": {
+        "hs_code": "2208.40",
+        "hs_description": "Rum and other spirits obtained by distilling fermented cane products",
+        "import_duty_rate": 0.45,  # 45%
+        "excise_per_lpa": 20.00,  # $20.00 per liter of pure alcohol (LPA)
+        "requires_permit": True
+    },
+    "liqueur": {
+        "hs_code": "2208.70",
+        "hs_description": "Liqueurs and cordials",
+        "import_duty_rate": 0.45,  # 45%
+        "excise_per_lpa": 18.00,  # $18.00 per liter of pure alcohol
+        "requires_permit": True
+    },
+    "other": {
+        "hs_code": "2208.90",
+        "hs_description": "Other spirituous beverages",
+        "import_duty_rate": 0.40,  # 40%
+        "excise_per_lpa": 15.00,  # $15.00 per liter of pure alcohol
+        "requires_permit": True
+    }
+}
+
+VAT_RATE = 0.10  # 10% VAT (Bahamas current rate)
+LICENSE_FEE_BASE = 50.00  # Base license processing fee
+
+@api_router.post("/alcohol/calculate", response_model=AlcoholCalculationResult)
+async def calculate_alcohol_duties(
+    request: AlcoholCalculationRequest,
+    user: dict = Depends(get_current_user)
+):
+    """Calculate duties, excise, VAT, and fees for alcohol imports"""
+    
+    rates = ALCOHOL_RATES.get(request.alcohol_type, ALCOHOL_RATES["other"])
+    warnings = []
+    
+    # Calculate volumes
+    volume_per_unit_liters = request.volume_ml / 1000
+    total_volume_liters = volume_per_unit_liters * request.quantity
+    pure_alcohol_liters = total_volume_liters * (request.alcohol_percentage / 100)
+    
+    # Calculate Import Duty
+    import_duty = request.cif_value * rates["import_duty_rate"]
+    
+    # Calculate Excise Duty
+    if request.alcohol_type in ["spirits", "liqueur", "other"]:
+        # Spirits: charged per liter of pure alcohol (LPA)
+        excise_rate = rates.get("excise_per_lpa", 15.00)
+        excise_duty = pure_alcohol_liters * excise_rate
+        excise_calculation = f"{pure_alcohol_liters:.2f} LPA × ${excise_rate:.2f}/LPA"
+    else:
+        # Beer/Wine: charged per liter of beverage
+        excise_rate = rates.get("excise_per_liter", 2.00)
+        excise_duty = total_volume_liters * excise_rate
+        excise_calculation = f"{total_volume_liters:.2f}L × ${excise_rate:.2f}/L"
+    
+    # Calculate VAT (on CIF + Duty + Excise)
+    vat_base = request.cif_value + import_duty + excise_duty
+    vat = vat_base * VAT_RATE
+    
+    # Calculate License Fee
+    license_fee = 0.0
+    if request.has_liquor_license:
+        license_fee = LICENSE_FEE_BASE
+        if request.quantity > 24:
+            license_fee += (request.quantity - 24) * 0.50  # Additional fee for bulk
+    
+    # Total Landed Cost
+    total_landed_cost = request.cif_value + import_duty + excise_duty + vat + license_fee
+    
+    # Warnings and flags
+    if request.alcohol_percentage > 40:
+        warnings.append("High ABV product (>40%) - may require additional inspection")
+    if total_volume_liters > 10 and not request.has_liquor_license:
+        warnings.append("Volume exceeds personal use allowance - liquor license recommended")
+    if rates["requires_permit"]:
+        warnings.append(f"Import permit required for {request.alcohol_type}")
+    if request.cif_value > 5000:
+        warnings.append("High value shipment - may be subject to additional documentation")
+    
+    # Create calculation record
+    calc_id = str(uuid.uuid4())
+    calculation = {
+        "id": calc_id,
+        "user_id": user["id"],
+        "product_name": request.product_name,
+        "alcohol_type": request.alcohol_type,
+        "hs_code": rates["hs_code"],
+        "hs_description": rates["hs_description"],
+        "quantity": request.quantity,
+        "total_volume_liters": round(total_volume_liters, 2),
+        "alcohol_percentage": request.alcohol_percentage,
+        "pure_alcohol_liters": round(pure_alcohol_liters, 2),
+        "cif_value": round(request.cif_value, 2),
+        "import_duty": round(import_duty, 2),
+        "import_duty_rate": f"{rates['import_duty_rate'] * 100:.0f}%",
+        "excise_duty": round(excise_duty, 2),
+        "excise_calculation": excise_calculation,
+        "vat": round(vat, 2),
+        "vat_rate": f"{VAT_RATE * 100:.0f}%",
+        "license_fee": round(license_fee, 2),
+        "total_landed_cost": round(total_landed_cost, 2),
+        "breakdown": {
+            "cif_value": round(request.cif_value, 2),
+            "import_duty": round(import_duty, 2),
+            "excise_duty": round(excise_duty, 2),
+            "vat": round(vat, 2),
+            "license_fee": round(license_fee, 2),
+            "total": round(total_landed_cost, 2)
+        },
+        "warnings": warnings,
+        "requires_permit": rates["requires_permit"],
+        "country_of_origin": request.country_of_origin,
+        "brand_label": request.brand_label,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Save to database
+    await db.alcohol_calculations.insert_one(calculation)
+    
+    calculation["created_at"] = datetime.fromisoformat(calculation["created_at"])
+    return calculation
+
+@api_router.get("/alcohol/calculations", response_model=List[AlcoholCalculationResult])
+async def get_alcohol_calculations(user: dict = Depends(get_current_user)):
+    """Get user's alcohol calculation history"""
+    calculations = await db.alcohol_calculations.find(
+        {"user_id": user["id"]},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    for calc in calculations:
+        if isinstance(calc.get("created_at"), str):
+            calc["created_at"] = datetime.fromisoformat(calc["created_at"])
+    
+    return calculations
+
+@api_router.get("/alcohol/calculations/{calc_id}", response_model=AlcoholCalculationResult)
+async def get_alcohol_calculation(calc_id: str, user: dict = Depends(get_current_user)):
+    """Get a specific alcohol calculation"""
+    calculation = await db.alcohol_calculations.find_one(
+        {"id": calc_id, "user_id": user["id"]},
+        {"_id": 0}
+    )
+    if not calculation:
+        raise HTTPException(status_code=404, detail="Calculation not found")
+    
+    if isinstance(calculation.get("created_at"), str):
+        calculation["created_at"] = datetime.fromisoformat(calculation["created_at"])
+    
+    return calculation
+
+@api_router.get("/alcohol/calculations/{calc_id}/export")
+async def export_alcohol_calculation(calc_id: str, user: dict = Depends(get_current_user)):
+    """Export alcohol calculation as PDF-ready data"""
+    from fastapi.responses import JSONResponse
+    
+    calculation = await db.alcohol_calculations.find_one(
+        {"id": calc_id, "user_id": user["id"]},
+        {"_id": 0}
+    )
+    if not calculation:
+        raise HTTPException(status_code=404, detail="Calculation not found")
+    
+    # Format for PDF export
+    export_data = {
+        "title": "Bahamas Customs Alcohol Import Duty Calculation",
+        "reference_number": calc_id[:8].upper(),
+        "date": datetime.now(timezone.utc).strftime("%B %d, %Y"),
+        "product_details": {
+            "Product Name": calculation["product_name"],
+            "Brand/Label": calculation.get("brand_label", "N/A"),
+            "Type": calculation["alcohol_type"].title(),
+            "HS Code": calculation["hs_code"],
+            "HS Description": calculation["hs_description"],
+            "Country of Origin": calculation.get("country_of_origin", "N/A"),
+            "Quantity": f"{calculation['quantity']} units",
+            "Total Volume": f"{calculation['total_volume_liters']} liters",
+            "Alcohol Content": f"{calculation['alcohol_percentage']}% ABV",
+            "Pure Alcohol": f"{calculation['pure_alcohol_liters']} liters"
+        },
+        "duty_breakdown": {
+            "CIF Value (USD)": f"${calculation['cif_value']:,.2f}",
+            f"Import Duty ({calculation['import_duty_rate']})": f"${calculation['import_duty']:,.2f}",
+            f"Excise Duty ({calculation['excise_calculation']})": f"${calculation['excise_duty']:,.2f}",
+            f"VAT ({calculation['vat_rate']})": f"${calculation['vat']:,.2f}",
+            "License/Processing Fee": f"${calculation['license_fee']:,.2f}",
+            "TOTAL LANDED COST": f"${calculation['total_landed_cost']:,.2f}"
+        },
+        "warnings": calculation.get("warnings", []),
+        "requires_permit": calculation.get("requires_permit", False),
+        "disclaimer": "This calculation is for estimation purposes. Final duties may vary based on Bahamas Customs assessment."
+    }
+    
+    return JSONResponse(content=export_data)
+
+@api_router.get("/alcohol/rates")
+async def get_alcohol_rates(user: dict = Depends(get_current_user)):
+    """Get current alcohol duty rates"""
+    return {
+        "rates": ALCOHOL_RATES,
+        "vat_rate": VAT_RATE,
+        "license_fee_base": LICENSE_FEE_BASE,
+        "last_updated": "January 2026",
+        "note": "Rates based on Bahamas Customs Management Act"
+    }
+
 # ============= ROOT ROUTE =============
 @api_router.get("/")
 async def root():
