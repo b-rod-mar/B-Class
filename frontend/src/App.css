@@ -1,34 +1,108 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* App-specific styles */
+
+.login-bg {
+  background-image: linear-gradient(to bottom right, rgba(2, 6, 23, 0.9), rgba(15, 23, 42, 0.85)), 
+                    url('https://images.unsplash.com/photo-1761307234324-0c9eadb951de?crop=entropy&cs=srgb&fm=jpg&q=85');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Confidence badge colors */
+.confidence-high {
+  @apply bg-emerald-500/20 text-emerald-400 border border-emerald-500/30;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.confidence-medium {
+  @apply bg-amber-500/20 text-amber-400 border border-amber-500/30;
 }
 
-.App-link {
-    color: #61dafb;
+.confidence-low {
+  @apply bg-rose-500/20 text-rose-400 border border-rose-500/30;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+/* Status badge colors */
+.status-approved {
+  @apply bg-emerald-500/20 text-emerald-400;
+}
+
+.status-review {
+  @apply bg-amber-500/20 text-amber-400;
+}
+
+.status-rejected {
+  @apply bg-rose-500/20 text-rose-400;
+}
+
+/* Table styles */
+.data-table {
+  @apply w-full;
+}
+
+.data-table th {
+  @apply text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4 py-3 bg-muted/50 sticky top-0 z-10 backdrop-blur-sm;
+}
+
+.data-table td {
+  @apply px-4 py-3 text-sm border-b border-border/50;
+}
+
+.data-table tr:hover td {
+  @apply bg-muted/30;
+}
+
+/* HS Code mono styling */
+.hs-code {
+  @apply font-mono text-sm tracking-wide text-primary;
+}
+
+/* Dropzone styles */
+.dropzone {
+  @apply border-2 border-dashed border-border rounded-xl p-12 text-center transition-all duration-200;
+}
+
+.dropzone:hover,
+.dropzone-active {
+  @apply border-primary bg-primary/5;
+}
+
+/* Card hover effect */
+.card-hover {
+  @apply transition-all duration-200 hover:shadow-lg hover:shadow-primary/10 hover:border-primary/30;
+}
+
+/* Sidebar navigation */
+.nav-item {
+  @apply flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground transition-all duration-200;
+}
+
+.nav-item:hover {
+  @apply bg-muted text-foreground;
+}
+
+.nav-item.active {
+  @apply bg-primary/10 text-primary;
+}
+
+/* Stats card */
+.stat-card {
+  @apply bg-card border border-border rounded-xl p-6 transition-all duration-200;
+}
+
+.stat-card:hover {
+  @apply border-primary/30 shadow-lg shadow-primary/5;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent;
+}
+
+/* Bahamas gold accent */
+.bahamas-gold {
+  color: hsl(var(--bahamas-gold));
+}
+
+.bahamas-gold-bg {
+  background-color: hsl(var(--bahamas-gold));
 }
