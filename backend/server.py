@@ -1868,6 +1868,170 @@ async def get_cma_regulation(reg_id: str, user: dict = Depends(get_current_user)
     
     return regulation
 
+# ============= CLASSI HELPDESK CHATBOT =============
+class ClassiChatRequest(BaseModel):
+    message: str
+
+# Bahamas Customs Knowledge Base
+BAHAMAS_CUSTOMS_KNOWLEDGE = """
+## BAHAMAS CUSTOMS INFORMATION
+
+### Contact Information
+- **Bahamas Customs Department Main Office**
+  - Address: Thompson Boulevard, Nassau, The Bahamas
+  - Phone: +1 (242) 325-6550 / 325-6551
+  - Fax: +1 (242) 322-6505
+  - Email: customsinfo@bahamas.gov.bs
+  - Website: www.bahamas.gov.bs/customs
+  - Hours: Monday-Friday, 9:00 AM - 5:00 PM
+
+### Ports of Entry in The Bahamas
+1. **Nassau (New Providence)**
+   - Nassau Container Port - Main commercial port
+   - Prince George Wharf - Cruise and cargo
+   - Lynden Pindling International Airport (NAS)
+   
+2. **Freeport (Grand Bahama)**
+   - Freeport Container Port - Major transshipment hub
+   - Grand Bahama International Airport (FPO)
+   - Freeport Harbour Company
+   
+3. **Family Islands Ports**
+   - Marsh Harbour, Abaco (MHH)
+   - Governor's Harbour, Eleuthera (GHB)
+   - George Town, Exuma (GGT)
+   - Rock Sound, Eleuthera (RSD)
+   - North Eleuthera (ELH)
+   - San Salvador (ZSA)
+   - Cat Island (TBI)
+   - Long Island (LGI)
+
+### Common Customs Forms
+- **C-13**: Customs Entry Form (main import declaration)
+- **C-14**: Customs Declaration for Unaccompanied Baggage
+- **C-15**: Export Entry Form
+- **C-17**: Transshipment Entry
+- **C-18**: Warehouse Entry
+- **C-63**: Application for Duty Exemption
+- **C-78**: Application for Temporary Import Permit
+- **SAD (Single Administrative Document)**: ASYCUDA World format
+
+### Duty Rates Overview
+- **0% (Free)**: Essential medicines, some raw materials, educational materials
+- **5-10%**: Basic foodstuffs, agricultural inputs, IT equipment
+- **25-35%**: General manufactured goods, clothing, footwear
+- **35-45%**: Alcoholic beverages (plus excise duty)
+- **45%**: Luxury items, certain protected goods
+
+### Import Process Steps
+1. Obtain business license (if commercial)
+2. Register with Customs (get TIN - Taxpayer ID Number)
+3. Prepare commercial invoice, packing list, bill of lading
+4. Classify goods using correct HS codes
+5. Submit entry via ASYCUDA World or customs broker
+6. Pay duties, VAT (10%), and processing fees
+7. Arrange for inspection if required
+8. Clear goods and collect from port
+
+### Special Requirements
+- **Restricted Items**: Firearms, ammunition, drugs, endangered species
+- **Permit Required**: Alcohol, pharmaceuticals, live animals, plants
+- **Prohibited**: Counterfeit goods, obscene materials, certain weapons
+- **VAT**: 10% on CIF value plus duties
+
+### Best Practices for Customs Entries
+1. Ensure accurate HS code classification (use GRI rules 1-6)
+2. Declare correct value (transaction value method)
+3. Include country of origin for preferential rates
+4. Keep all documentation for 5 years
+5. Use licensed customs broker for complex shipments
+6. Apply for exemptions before importing (C-63 form)
+7. Check restricted/prohibited lists before shipping
+"""
+
+@api_router.post("/classi/chat")
+async def classi_chat(request: ClassiChatRequest, user: dict = Depends(get_current_user)):
+    """Classi AI Helpdesk - Bahamas Customs Assistant"""
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    
+    api_key = os.environ.get('EMERGENT_LLM_KEY')
+    if not api_key:
+        # Fallback response without AI
+        return {"response": "I'm currently in limited mode. For immediate assistance, please contact Bahamas Customs at +1 (242) 325-6550."}
+    
+    try:
+        # Fetch HS codes from database for context
+        hs_codes = await db.hs_codes.find({}, {"_id": 0, "code": 1, "description": 1, "duty_rate": 1}).to_list(100)
+        hs_context = "\n".join([f"- {c['code']}: {c['description']} (Duty: {c.get('duty_rate', 'N/A')})" for c in hs_codes[:50]])
+        
+        # Fetch country codes if available
+        country_codes = await db.country_codes.find({}, {"_id": 0}).to_list(50)
+        country_context = "\n".join([f"- {c.get('code', '')}: {c.get('name', '')}" for c in country_codes[:30]]) if country_codes else ""
+        
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"classi-{user['id']}-{uuid.uuid4()}",
+            system_message=f"""You are Classi, a friendly and knowledgeable AI assistant for the Class-B HS Code Agent application - a Bahamas Customs classification system.
+
+Your role is to help users with:
+1. Understanding how to use the app features (HS classification, alcohol calculator, CMA reference)
+2. Bahamas Customs procedures, forms, and regulations
+3. HS code guidance and classification tips
+4. Duty rates and calculations
+5. Port of entry information
+6. When and how to contact Bahamas Customs directly
+
+{BAHAMAS_CUSTOMS_KNOWLEDGE}
+
+### Available HS Codes in Library:
+{hs_context}
+
+### Country Codes:
+{country_context}
+
+Guidelines:
+- Be helpful, friendly, and professional
+- Use the Bahamian context (e.g., BSD currency, local regulations)
+- Always recommend contacting Bahamas Customs directly for official rulings
+- Provide specific form numbers when relevant (C-13, C-14, etc.)
+- If unsure, say so and recommend official sources
+- Keep responses concise but informative
+- Include relevant phone numbers and emails when appropriate"""
+        ).with_model("openai", "gpt-5.2")
+        
+        response = await chat.send_message(UserMessage(text=request.message))
+        return {"response": response}
+        
+    except Exception as e:
+        logger.error(f"Classi chat error: {e}")
+        return {"response": f"I'm having trouble processing your request. For immediate assistance, please contact Bahamas Customs at +1 (242) 325-6550 or email customsinfo@bahamas.gov.bs."}
+
+# ============= HS CODE AUTO-SUGGEST =============
+@api_router.get("/hs-codes/suggest")
+async def suggest_hs_codes(
+    q: str,
+    limit: int = 10,
+    user: dict = Depends(get_current_user)
+):
+    """Auto-suggest HS codes based on description query"""
+    if not q or len(q) < 2:
+        return {"suggestions": []}
+    
+    # Search by code prefix or description
+    query = {
+        "$or": [
+            {"code": {"$regex": f"^{q}", "$options": "i"}},
+            {"description": {"$regex": q, "$options": "i"}}
+        ]
+    }
+    
+    codes = await db.hs_codes.find(
+        query, 
+        {"_id": 0, "code": 1, "description": 1, "chapter": 1, "duty_rate": 1, "is_restricted": 1, "requires_permit": 1}
+    ).limit(limit).to_list(limit)
+    
+    return {"suggestions": codes}
+
 # ============= ROOT ROUTE =============
 @api_router.get("/")
 async def root():
