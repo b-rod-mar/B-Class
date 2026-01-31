@@ -183,25 +183,49 @@ export default function ClassificationResultPage() {
             </p>
           </div>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90" data-testid="export-btn">
-              <Download className="h-4 w-4 mr-2" />
-              Export
-              <ChevronDown className="h-4 w-4 ml-2" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleExport('csv')} data-testid="export-csv">
-              <FileText className="h-4 w-4 mr-2" />
-              Export as CSV
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleExport('xlsx')} data-testid="export-xlsx">
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Export as Excel
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90" data-testid="export-btn">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport('csv')} data-testid="export-csv">
+                <FileText className="h-4 w-4 mr-2" />
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('xlsx')} data-testid="export-xlsx">
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Export as Excel
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={handleDeleteClassification}
+                className="text-rose-400 focus:text-rose-300 focus:bg-rose-500/10"
+                data-testid="delete-classification"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Entire Classification
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            variant="outline"
+            className="text-rose-400 border-rose-500/30 hover:bg-rose-500/10"
+            onClick={handleDeleteClassification}
+            disabled={deleting}
+            data-testid="delete-btn"
+          >
+            {deleting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
