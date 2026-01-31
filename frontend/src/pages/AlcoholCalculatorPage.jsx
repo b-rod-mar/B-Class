@@ -519,7 +519,7 @@ export default function AlcoholCalculatorPage() {
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
               <div className="space-y-0.5">
                 <Label htmlFor="has_license">Liquor License Holder</Label>
-                <p className="text-xs text-muted-foreground">Do you have a valid Bahamas liquor import license?</p>
+                <p className="text-xs text-muted-foreground">Do you or client have a valid Bahamas liquor import license for customs compliance purposes?</p>
               </div>
               <Switch
                 id="has_license"
