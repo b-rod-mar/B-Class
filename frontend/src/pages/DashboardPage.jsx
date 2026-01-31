@@ -96,7 +96,7 @@ export default function DashboardPage() {
             Welcome back, {user?.name?.split(' ')[0]}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Bahamas HS Code Classification Dashboard
+            Class-B HS Code Agent Dashboard
           </p>
         </div>
         <Link to="/upload">
