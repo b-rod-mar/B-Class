@@ -2624,9 +2624,17 @@ async def get_vehicle_rates(user: dict = Depends(get_current_user)):
     return {
         "rates": serializable_rates,
         "vat_rate": VEHICLE_VAT_RATE,
-        "environmental_levy_rate": ENVIRONMENTAL_LEVY_RATE,
-        "stamp_duty_rate": STAMP_DUTY_RATE,
-        "processing_fee": PROCESSING_FEE,
+        "environmental_levy": {
+            "new_vehicle": ENVIRONMENTAL_LEVY_NEW,
+            "over_10_years_rate": ENVIRONMENTAL_LEVY_OVER_10_YEARS,
+            "antique": ENVIRONMENTAL_LEVY_ANTIQUE,
+            "tire_levy": TIRE_LEVY_PER_TIRE
+        },
+        "processing_fee": {
+            "rate": PROCESSING_FEE_RATE,
+            "min": PROCESSING_FEE_MIN,
+            "max": PROCESSING_FEE_MAX
+        },
         "last_updated": "January 2026",
         "note": "Rates based on Bahamas Customs Management Act and 2024 Budget"
     }
