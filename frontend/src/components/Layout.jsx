@@ -19,7 +19,8 @@ import {
   Car,
   User,
   Settings,
-  ChevronDown
+  ChevronDown,
+  Shield
 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
