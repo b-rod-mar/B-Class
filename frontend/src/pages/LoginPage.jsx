@@ -102,7 +102,7 @@ export default function LoginPage() {
           </CardContent>
         </Card>
         <p className="text-center text-xs text-muted-foreground mt-6">
-          CMA Compliant • ASYCUDA Ready • GRI 1-6 Classification
+          CMA Compliant • Electronic Single Window Ready • GRI 1-6 Classification
         </p>
       </div>
     </div>

@@ -163,7 +163,7 @@ export default function CMASearchPage() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search regulations (e.g., duty rates, exemptions, ASYCUDA)..."
+                placeholder="Search regulations (e.g., duty rates, exemptions, Electronic Single Window)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
@@ -204,7 +204,7 @@ export default function CMASearchPage() {
           {/* Quick Search Tags */}
           <div className="flex flex-wrap gap-2 mt-4">
             <span className="text-xs text-muted-foreground">Quick searches:</span>
-            {['duty rates', 'exemptions', 'VAT', 'alcohol', 'vehicles', 'penalties', 'CARICOM', 'ASYCUDA'].map((term) => (
+            {['duty rates', 'exemptions', 'VAT', 'alcohol', 'vehicles', 'penalties', 'CARICOM', 'Electronic Single Window'].map((term) => (
               <Button
                 key={term}
                 variant="outline"
