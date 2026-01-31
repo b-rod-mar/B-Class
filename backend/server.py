@@ -958,7 +958,7 @@ async def calculate_alcohol_duties(
     if total_volume_liters > 10 and not request.has_liquor_license:
         warnings.append("Volume exceeds personal use allowance - liquor license recommended")
     if rates["requires_permit"]:
-        warnings.append(f"Import permit required for {request.alcohol_type}")
+        warnings.append(f"Import permit required for {request.alcohol_type.value}")
     if request.cif_value > 5000:
         warnings.append("High value shipment - may be subject to additional documentation")
     

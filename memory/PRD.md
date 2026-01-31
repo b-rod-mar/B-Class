@@ -25,6 +25,10 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - `GET /api/classifications/{id}/export` - Export CSV/XLSX
 - `GET/POST/PUT/DELETE /api/hs-codes` - HS code library CRUD
 - `GET /api/dashboard/stats` - Dashboard statistics
+- `POST /api/alcohol/calculate` - Alcohol duty calculation
+- `GET /api/alcohol/calculations` - Alcohol calculation history
+- `GET /api/alcohol/calculations/{id}/export` - Export alcohol calculation
+- `GET /api/alcohol/rates` - Current duty rates
 
 ## User Personas
 1. **Customs Broker** - Primary user, needs fast accurate HS classification
@@ -40,9 +44,9 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] Audit trail with reasoning
 - [x] ASYCUDA-compatible export
 
-## What's Been Implemented (Jan 30, 2026)
+## What's Been Implemented
 
-### MVP Features
+### MVP Features (Jan 30, 2026)
 - [x] User authentication (JWT)
 - [x] Document upload (Excel, CSV, PDF support)
 - [x] AI-powered HS code classification with GPT-5.2
@@ -56,6 +60,18 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] Professional dark mode UI
 - [x] Mobile responsive design
 
+### B-CLASS Alcohol Calculator Module (Jan 31, 2026)
+- [x] Automated duty calculation for Wine, Beer, Spirits, Liqueur
+- [x] Import duty calculation (35-45% based on type)
+- [x] Excise duty calculation (per liter or per LPA)
+- [x] VAT calculation (10% on CIF + duties)
+- [x] License fee calculation
+- [x] Total landed cost breakdown
+- [x] Warning flags (high ABV, permits, volume limits)
+- [x] Calculation history
+- [x] Export to printable PDF format
+- [x] Current Bahamas duty rates display
+
 ### Design
 - Dark mode with Electric Teal (#2DD4BF) accents
 - Chivo (headings), Inter (body), JetBrains Mono (code) fonts
@@ -66,12 +82,14 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 
 ### P0 (Critical) - Done
 - [x] Core classification flow
+- [x] B-CLASS Alcohol Calculator
 
 ### P1 (High Priority)
 - [ ] PDF invoice extraction with AI (Gemini 2.5 Flash)
 - [ ] Admin dashboard for user management
 - [ ] Bulk document processing
 - [ ] Save/reuse approved HS codes for repeat shipments
+- [ ] Batch alcohol shipment processing
 
 ### P2 (Medium Priority)
 - [ ] ASYCUDA World direct integration
@@ -79,16 +97,18 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [ ] Team/organization accounts
 - [ ] API rate limiting
 - [ ] Email notifications for flagged items
+- [ ] Scenario comparison for alcohol shipments
 
 ### P3 (Low Priority)
 - [ ] Light mode theme toggle
 - [ ] Advanced search filters
 - [ ] Classification analytics/reports
 - [ ] Mobile app version
+- [ ] Real-time duty rate API integration
 
 ## Next Tasks
 1. Implement PDF extraction with AI (FileContentWithMimeType + Gemini)
 2. Add bulk upload support for multiple files
 3. Create admin dashboard for user management
 4. Add learning from user approvals (improve AI suggestions)
-5. Integrate duty rate calculation based on HS codes
+5. Integrate real-time duty rate updates from Bahamas Customs
