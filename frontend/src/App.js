@@ -70,6 +70,7 @@ function AppRoutes() {
         <Route path="customs-forms" element={<CustomsFormsPage />} />
         <Route path="country-codes" element={<CountryCodesPage />} />
         <Route path="notations" element={<NotationsPage />} />
+        <Route path="tariffs" element={<TariffsDutiesPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
