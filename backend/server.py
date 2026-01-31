@@ -4771,6 +4771,9 @@ async def startup_event():
     weekly_log_task = asyncio.create_task(weekly_log_scheduler())
     logger.info("Weekly account log scheduler started")
     
+    # Seed super admin account
+    await seed_super_admin()
+    
     # Send initial log on startup (captures any accounts created before scheduler was running)
     # Comment this out if you don't want immediate log on startup
     # await send_weekly_account_log()
