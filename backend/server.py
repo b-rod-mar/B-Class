@@ -700,6 +700,16 @@ async def export_classification(
             headers={"Content-Disposition": f"attachment; filename=classification_{classification_id}.csv"}
         )
 
+@api_router.delete("/classifications/{classification_id}")
+async def delete_classification(classification_id: str, user: dict = Depends(get_current_user)):
+    """Delete a classification record"""
+    result = await db.classifications.delete_one({"id": classification_id, "user_id": user["id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Classification not found")
+    # Also delete the associated document
+    await db.documents.delete_one({"id": classification_id, "user_id": user["id"]})
+    return {"message": "Classification deleted"}
+
 # ============= HS CODE LIBRARY ROUTES =============
 
 # Bulk HS Code Classification Template and Upload
