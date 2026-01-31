@@ -101,11 +101,28 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] **Expandable Content** - Accordion-style regulation display
 - [x] **Keyword Navigation** - Click keywords to search related content
 
+### Classi AI Helpdesk (Jan 31, 2026)
+- [x] **Floating Chat Widget** - Accessible from all pages after login
+- [x] **Bahamian Flag Avatar** - National colors (#00778B, #FFC72C, #000)
+- [x] **GPT-5.2 Powered** - Intelligent responses via Emergent LLM Key
+- [x] **Bahamas Customs Knowledge** - Ports of entry, forms, procedures, contact info
+- [x] **Quick Action Buttons** - Pre-defined common questions
+- [x] **App Help** - Guidance on using all features
+- [x] **Contact Info** - Bahamas Customs phone, email, address
+
+### HS Code Auto-Suggest (Jan 31, 2026)
+- [x] **Smart Search** - Type description to find matching HS codes
+- [x] **Instant Results** - Debounced 300ms search with dropdown
+- [x] **Rich Information** - Shows code, description, duty rate, flags
+- [x] **One-Click Apply** - Select to auto-fill code and description
+- [x] **Classification Edit Integration** - Available when editing items
+
 ### Design
 - Dark mode with Electric Teal (#2DD4BF) accents
 - Chivo (headings), Inter (body), JetBrains Mono (code) fonts
 - Glassmorphism login card with shipping port background
 - Bento grid dashboard layout
+- **Branding: Class-B HS Code Agent** (updated Jan 31, 2026)
 
 ## Prioritized Backlog
 
