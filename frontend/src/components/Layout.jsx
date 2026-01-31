@@ -19,6 +19,7 @@ import {
 import { Button } from './ui/button';
 import { useState } from 'react';
 import { cn } from '../lib/utils';
+import ClassiChat from './ClassiChat';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -143,7 +144,10 @@ export default function Layout() {
       </main>
 
       {/* Noise overlay */}
-      <div className="fixed inset-0 noise-overlay z-50 pointer-events-none" />
+      <div className="fixed inset-0 noise-overlay z-40 pointer-events-none" />
+
+      {/* Classi Chat Widget */}
+      <ClassiChat />
     </div>
   );
 }
