@@ -84,6 +84,22 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] **Export Options** - CSV and Excel export for classified items
 - [x] **Tabbed Interface** - Document Upload + Bulk Item List tabs
 
+### Bahamas HS Code Library (Jan 31, 2026)
+- [x] **Pre-loaded Database** - 63 Bahamas-specific HS codes
+- [x] **Detailed Information** - Duty rates, chapter, section, notes
+- [x] **Restriction Flags** - Visual indicators for restricted items
+- [x] **Permit Requirements** - Flags for items requiring permits
+- [x] **Searchable** - Full-text search by code or description
+- [x] **Editable** - Add, edit, delete codes as needed
+
+### CMA Reference Module (Jan 31, 2026)
+- [x] **21 Regulations** - Comprehensive CMA coverage
+- [x] **Categories**: Preliminary, Administration, Importation, Duties, Exemptions, Procedures, Enforcement, Appeals, Special Provisions, Trade Agreements
+- [x] **Full-text Search** - Search by keyword or phrase
+- [x] **Quick Search Tags** - One-click common searches
+- [x] **Expandable Content** - Accordion-style regulation display
+- [x] **Keyword Navigation** - Click keywords to search related content
+
 ### Design
 - Dark mode with Electric Teal (#2DD4BF) accents
 - Chivo (headings), Inter (body), JetBrains Mono (code) fonts

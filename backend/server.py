@@ -891,6 +891,103 @@ async def export_hs_classification_batch(batch_id: str, format: str = "csv", use
             headers={"Content-Disposition": f"attachment; filename=hs_classification_{batch_id[:8]}.csv"}
         )
 
+# ============= HS CODE IMPORT =============
+@api_router.get("/hs-codes/import-template")
+async def get_hs_import_template(user: dict = Depends(get_current_user)):
+    """Download CSV template for importing HS codes to library"""
+    from fastapi.responses import StreamingResponse
+    
+    template_data = """code,description,chapter,section,duty_rate,notes,bahamas_extension,is_restricted,requires_permit
+8471.30,Portable digital automatic data processing machines,84,XVI,10%,Laptops and notebooks,,false,false
+8517.12,Telephones for cellular networks,85,XVI,10%,Mobile phones and smartphones,,false,false
+2208.40,Rum and other spirits from sugar cane,22,IV,45%,Excise $20/LPA applies,00,true,true
+6403.99,Footwear with leather uppers,64,XII,45%,High duty on finished footwear,,false,false"""
+    
+    output = io.StringIO()
+    output.write(template_data)
+    output.seek(0)
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=hs_codes_import_template.csv"}
+    )
+
+@api_router.post("/hs-codes/import")
+async def import_hs_codes(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user)
+):
+    """Import HS codes from CSV/Excel file"""
+    
+    file_ext = file.filename.split(".")[-1].lower()
+    if file_ext not in ["csv", "xlsx", "xls"]:
+        raise HTTPException(status_code=400, detail="Only CSV and Excel files are supported")
+    
+    content = await file.read()
+    
+    try:
+        if file_ext == "csv":
+            df = pd.read_csv(io.BytesIO(content))
+        else:
+            df = pd.read_excel(io.BytesIO(content))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error reading file: {str(e)}")
+    
+    # Normalize column names
+    df.columns = df.columns.str.lower().str.strip().str.replace(' ', '_')
+    
+    required_cols = ['code', 'description', 'chapter']
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise HTTPException(status_code=400, detail=f"Missing required columns: {', '.join(missing_cols)}")
+    
+    imported = 0
+    updated = 0
+    errors = []
+    
+    for idx, row in df.iterrows():
+        try:
+            code = str(row['code']).strip()
+            if not code:
+                continue
+            
+            # Check if code exists
+            existing = await db.hs_codes.find_one({"code": code})
+            
+            code_doc = {
+                "code": code,
+                "description": str(row['description']),
+                "chapter": str(row['chapter']),
+                "section": str(row.get('section', '')) if pd.notna(row.get('section')) else None,
+                "duty_rate": str(row.get('duty_rate', '')) if pd.notna(row.get('duty_rate')) else None,
+                "notes": str(row.get('notes', '')) if pd.notna(row.get('notes')) else None,
+                "bahamas_extension": str(row.get('bahamas_extension', '')) if pd.notna(row.get('bahamas_extension')) else None,
+                "is_restricted": str(row.get('is_restricted', 'false')).lower() in ['true', '1', 'yes'],
+                "requires_permit": str(row.get('requires_permit', 'false')).lower() in ['true', '1', 'yes'],
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            if existing:
+                await db.hs_codes.update_one({"code": code}, {"$set": code_doc})
+                updated += 1
+            else:
+                code_doc["id"] = str(uuid.uuid4())
+                code_doc["created_at"] = datetime.now(timezone.utc).isoformat()
+                code_doc["created_by"] = user["id"]
+                await db.hs_codes.insert_one(code_doc)
+                imported += 1
+                
+        except Exception as e:
+            errors.append({"row": idx + 1, "error": str(e)})
+    
+    return {
+        "imported": imported,
+        "updated": updated,
+        "errors": errors,
+        "total_processed": imported + updated
+    }
+
 @api_router.get("/hs-codes", response_model=List[HSCodeResponse])
 async def get_hs_codes(
     search: Optional[str] = None,
