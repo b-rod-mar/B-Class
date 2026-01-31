@@ -228,10 +228,10 @@ export default function TariffsDutiesPage() {
     )
   })).filter(category => category.items.length > 0);
 
-  const filteredExemptions = CHAPTER_98_EXEMPTIONS.filter(exemption =>
-    exemption.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredExemptions = DUTY_EXEMPTIONS.filter(exemption =>
+    exemption.notes.toLowerCase().includes(searchQuery.toLowerCase()) ||
     exemption.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    exemption.heading.toLowerCase().includes(searchQuery.toLowerCase())
+    exemption.items.some(item => item.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
