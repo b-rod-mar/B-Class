@@ -74,7 +74,15 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] **Bulk Upload** - CSV/Excel file upload for batch processing
 - [x] **Downloadable Template** - Pre-formatted CSV with sample data
 - [x] **Batch Results** - Summary view with totals and per-item breakdown
-- [x] **Batch Export** - Export processed batch as CSV
+- [x] **Batch Export** - Export as CSV or Excel
+
+### Bulk HS Code Classification (Jan 31, 2026)
+- [x] **Item List Upload** - CSV/Excel upload for bulk HS classification
+- [x] **Downloadable Template** - Pre-formatted CSV with 8 sample items
+- [x] **AI Classification** - GPT-5.2 powered HS code assignment
+- [x] **Results Table** - Description, HS code, confidence scores
+- [x] **Export Options** - CSV and Excel export for classified items
+- [x] **Tabbed Interface** - Document Upload + Bulk Item List tabs
 
 ### Design
 - Dark mode with Electric Teal (#2DD4BF) accents
