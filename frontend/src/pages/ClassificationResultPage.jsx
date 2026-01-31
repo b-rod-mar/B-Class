@@ -348,7 +348,7 @@ export default function ClassificationResultPage() {
                         <Badge className={cn(
                           "text-xs",
                           item.review_status === 'user_updated' 
-                            ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                            ? 'bg-purple-500/20 text-purple-400 border-purple-500/30'
                             : getStatusColor(item.review_status)
                         )}>
                           {item.review_status === 'user_updated' ? 'User Updated' : getStatusLabel(item.review_status)}
