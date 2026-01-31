@@ -12,10 +12,12 @@ import {
   Upload, 
   ArrowRight,
   Clock,
-  Package
+  Package,
+  Shield
 } from 'lucide-react';
 import { formatDate, getStatusColor, getStatusLabel } from '../lib/utils';
 import { toast } from 'sonner';
+import TermsOfUse from '../components/TermsOfUse';
 
 export default function DashboardPage() {
   const { user, api } = useAuth();
