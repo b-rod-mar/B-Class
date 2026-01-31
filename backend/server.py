@@ -1465,15 +1465,496 @@ async def get_dashboard_stats(user: dict = Depends(get_current_user)):
 # ============= ADMIN ROUTES =============
 @api_router.get("/admin/users", response_model=List[dict])
 async def get_all_users(user: dict = Depends(require_admin)):
-    users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    users = await db.users.find({}, {"_id": 0, "password": 0, "secret_code": 0}).to_list(1000)
     return users
 
 @api_router.put("/admin/users/{user_id}/role")
-async def update_user_role(user_id: str, role: UserRole, admin: dict = Depends(require_admin)):
-    result = await db.users.update_one({"id": user_id}, {"$set": {"role": role}})
+async def update_user_role(user_id: str, role: UserRole, admin: dict = Depends(require_super_admin)):
+    # Log the action
+    await log_admin_action(admin["id"], "update_role", f"Changed user {user_id} role to {role}")
+    result = await db.users.update_one({"id": user_id}, {"$set": {"role": role, "updated_at": datetime.now(timezone.utc).isoformat()}})
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User role updated"}
+
+# ============= SUPER ADMIN SYSTEM =============
+
+async def log_admin_action(admin_id: str, action_type: str, description: str, metadata: dict = None):
+    """Log all admin actions for audit trail"""
+    log_entry = {
+        "id": str(uuid.uuid4()),
+        "admin_id": admin_id,
+        "action_type": action_type,
+        "description": description,
+        "metadata": metadata or {},
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    await db.admin_audit_logs.insert_one(log_entry)
+    return log_entry
+
+async def seed_super_admin():
+    """Create initial super admin if not exists"""
+    existing = await db.users.find_one({"email": "@dmin1"})
+    if not existing:
+        admin_doc = {
+            "id": str(uuid.uuid4()),
+            "email": "@dmin1",
+            "name": "System Administrator",
+            "company": "System",
+            "password": hash_password("bcl@ss_1"),
+            "secret_code": "",  # Must be set on first login
+            "role": UserRole.SUPER_ADMIN,
+            "admin_access_level": AdminAccessLevel.FULL,
+            "account_status": AccountStatus.ACTIVE,
+            "must_change_password": True,
+            "must_set_secret_code": True,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.users.insert_one(admin_doc)
+        logger.info("Super admin account created: @dmin1")
+        return True
+    return False
+
+# Admin Models
+class AdminUserCreate(BaseModel):
+    email: EmailStr
+    name: str
+    company: Optional[str] = ""
+    password: str
+    role: UserRole = UserRole.USER
+    admin_access_level: Optional[AdminAccessLevel] = None
+
+class AdminUserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    company: Optional[str] = None
+    role: Optional[UserRole] = None
+    admin_access_level: Optional[AdminAccessLevel] = None
+    account_status: Optional[AccountStatus] = None
+
+class BroadcastNotification(BaseModel):
+    title: str
+    message: str
+    notification_type: str = "info"  # info, warning, urgent, update
+    expires_at: Optional[str] = None
+
+class SystemSettings(BaseModel):
+    terms_of_use: Optional[str] = None
+    disclaimer_text: Optional[str] = None
+    weekly_email_enabled: Optional[bool] = None
+
+# Super Admin User Management
+@api_router.post("/admin/users/create")
+async def admin_create_user(user_data: AdminUserCreate, admin: dict = Depends(require_super_admin)):
+    """Create a new user account (admin only)"""
+    existing = await db.users.find_one({"email": user_data.email})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    user_id = str(uuid.uuid4())
+    user_doc = {
+        "id": user_id,
+        "email": user_data.email,
+        "name": user_data.name,
+        "company": user_data.company,
+        "password": hash_password(user_data.password),
+        "secret_code": "",
+        "role": user_data.role,
+        "admin_access_level": user_data.admin_access_level if user_data.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN] else None,
+        "account_status": AccountStatus.ACTIVE,
+        "must_change_password": True,
+        "must_set_secret_code": True,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "created_by": admin["id"]
+    }
+    
+    await db.users.insert_one(user_doc)
+    await log_admin_action(admin["id"], "create_user", f"Created user {user_data.email} with role {user_data.role}")
+    
+    return {"message": "User created successfully", "user_id": user_id}
+
+@api_router.post("/admin/users/bulk-create")
+async def admin_bulk_create_users(file: UploadFile = File(...), admin: dict = Depends(require_super_admin)):
+    """Bulk create users from CSV/Excel file"""
+    content = await file.read()
+    
+    if file.filename.endswith('.csv'):
+        df = pd.read_csv(io.BytesIO(content))
+    else:
+        df = pd.read_excel(io.BytesIO(content))
+    
+    required_cols = ['email', 'name', 'password']
+    if not all(col in df.columns for col in required_cols):
+        raise HTTPException(status_code=400, detail=f"Missing required columns: {required_cols}")
+    
+    created = 0
+    errors = []
+    
+    for idx, row in df.iterrows():
+        try:
+            existing = await db.users.find_one({"email": row['email']})
+            if existing:
+                errors.append(f"Row {idx+1}: Email {row['email']} already exists")
+                continue
+            
+            user_id = str(uuid.uuid4())
+            user_doc = {
+                "id": user_id,
+                "email": row['email'],
+                "name": row['name'],
+                "company": row.get('company', ''),
+                "password": hash_password(str(row['password'])),
+                "secret_code": "",
+                "role": UserRole.USER,
+                "account_status": AccountStatus.ACTIVE,
+                "must_change_password": True,
+                "must_set_secret_code": True,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "created_by": admin["id"]
+            }
+            await db.users.insert_one(user_doc)
+            created += 1
+        except Exception as e:
+            errors.append(f"Row {idx+1}: {str(e)}")
+    
+    await log_admin_action(admin["id"], "bulk_create_users", f"Bulk created {created} users from {file.filename}")
+    
+    return {"created": created, "errors": errors}
+
+@api_router.put("/admin/users/{user_id}")
+async def admin_update_user(user_id: str, update_data: AdminUserUpdate, admin: dict = Depends(require_super_admin)):
+    """Update user account details"""
+    update_doc = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    
+    if update_data.name is not None:
+        update_doc["name"] = update_data.name
+    if update_data.email is not None:
+        # Check email not in use
+        existing = await db.users.find_one({"email": update_data.email, "id": {"$ne": user_id}})
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already in use")
+        update_doc["email"] = update_data.email
+    if update_data.company is not None:
+        update_doc["company"] = update_data.company
+    if update_data.role is not None:
+        update_doc["role"] = update_data.role
+    if update_data.admin_access_level is not None:
+        update_doc["admin_access_level"] = update_data.admin_access_level
+    if update_data.account_status is not None:
+        update_doc["account_status"] = update_data.account_status
+    
+    result = await db.users.update_one({"id": user_id}, {"$set": update_doc})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    await log_admin_action(admin["id"], "update_user", f"Updated user {user_id}", update_doc)
+    
+    return {"message": "User updated successfully"}
+
+@api_router.post("/admin/users/{user_id}/reset-password")
+async def admin_reset_user_password(user_id: str, new_password: str = Body(..., embed=True), admin: dict = Depends(require_super_admin)):
+    """Reset a user's password"""
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "password": hash_password(new_password),
+            "must_change_password": True,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    await log_admin_action(admin["id"], "reset_password", f"Reset password for user {user_id}")
+    
+    return {"message": "Password reset successfully"}
+
+@api_router.post("/admin/users/{user_id}/suspend")
+async def admin_suspend_user(user_id: str, admin: dict = Depends(require_super_admin)):
+    """Suspend a user account"""
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"account_status": AccountStatus.SUSPENDED, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    await log_admin_action(admin["id"], "suspend_user", f"Suspended user {user_id}")
+    
+    return {"message": "User suspended"}
+
+@api_router.post("/admin/users/{user_id}/reactivate")
+async def admin_reactivate_user(user_id: str, admin: dict = Depends(require_super_admin)):
+    """Reactivate a suspended/deactivated user account"""
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"account_status": AccountStatus.ACTIVE, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    await log_admin_action(admin["id"], "reactivate_user", f"Reactivated user {user_id}")
+    
+    return {"message": "User reactivated"}
+
+@api_router.delete("/admin/users/{user_id}")
+async def admin_deactivate_user(user_id: str, admin: dict = Depends(require_super_admin)):
+    """Deactivate a user account (soft delete)"""
+    # Don't allow deactivating yourself
+    if user_id == admin["id"]:
+        raise HTTPException(status_code=400, detail="Cannot deactivate your own account")
+    
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"account_status": AccountStatus.DEACTIVATED, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    await log_admin_action(admin["id"], "deactivate_user", f"Deactivated user {user_id}")
+    
+    return {"message": "User deactivated"}
+
+@api_router.get("/admin/users/export")
+async def admin_export_users(admin: dict = Depends(require_admin)):
+    """Export all user data as Excel"""
+    from fastapi.responses import StreamingResponse
+    
+    users = await db.users.find({}, {"_id": 0, "password": 0, "secret_code": 0}).to_list(5000)
+    
+    rows = []
+    for user in users:
+        rows.append({
+            "ID": user.get("id", ""),
+            "Name": user.get("name", ""),
+            "Email": user.get("email", ""),
+            "Company": user.get("company", ""),
+            "Role": user.get("role", ""),
+            "Admin Access Level": user.get("admin_access_level", ""),
+            "Account Status": user.get("account_status", "active"),
+            "Created At": user.get("created_at", ""),
+            "Updated At": user.get("updated_at", ""),
+        })
+    
+    df = pd.DataFrame(rows)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Users', index=False)
+    output.seek(0)
+    
+    await log_admin_action(admin["id"], "export_users", f"Exported {len(users)} users")
+    
+    filename = f"users_export_{datetime.now(timezone.utc).strftime('%Y%m%d')}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+# Broadcast Notifications
+@api_router.post("/admin/notifications/broadcast")
+async def admin_broadcast_notification(notification: BroadcastNotification, admin: dict = Depends(require_admin)):
+    """Send a broadcast notification to all users"""
+    # Check access level for non-super admins
+    if admin.get("role") != UserRole.SUPER_ADMIN:
+        access_level = admin.get("admin_access_level", AdminAccessLevel.VIEW_ONLY)
+        if access_level not in [AdminAccessLevel.FULL, AdminAccessLevel.BROADCAST_ONLY]:
+            raise HTTPException(status_code=403, detail="Broadcast access required")
+    
+    notification_doc = {
+        "id": str(uuid.uuid4()),
+        "title": notification.title,
+        "message": notification.message,
+        "notification_type": notification.notification_type,
+        "created_by": admin["id"],
+        "created_by_name": admin.get("name", "Admin"),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "expires_at": notification.expires_at,
+        "is_active": True
+    }
+    
+    await db.broadcast_notifications.insert_one(notification_doc)
+    await log_admin_action(admin["id"], "broadcast_notification", f"Sent notification: {notification.title}")
+    
+    return {"message": "Notification broadcast successfully", "id": notification_doc["id"]}
+
+@api_router.get("/admin/notifications")
+async def admin_get_notifications(admin: dict = Depends(require_admin)):
+    """Get all broadcast notifications"""
+    notifications = await db.broadcast_notifications.find({}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return notifications
+
+@api_router.delete("/admin/notifications/{notification_id}")
+async def admin_delete_notification(notification_id: str, admin: dict = Depends(require_admin)):
+    """Delete/deactivate a broadcast notification"""
+    result = await db.broadcast_notifications.update_one(
+        {"id": notification_id},
+        {"$set": {"is_active": False}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    
+    await log_admin_action(admin["id"], "delete_notification", f"Deleted notification {notification_id}")
+    
+    return {"message": "Notification deleted"}
+
+# User-facing notification endpoint
+@api_router.get("/notifications/active")
+async def get_active_notifications(user: dict = Depends(get_current_user)):
+    """Get active broadcast notifications for dashboard"""
+    now = datetime.now(timezone.utc).isoformat()
+    notifications = await db.broadcast_notifications.find({
+        "is_active": True,
+        "$or": [
+            {"expires_at": None},
+            {"expires_at": {"$gt": now}}
+        ]
+    }, {"_id": 0}).sort("created_at", -1).to_list(10)
+    return notifications
+
+# System Settings
+@api_router.get("/admin/settings")
+async def admin_get_settings(admin: dict = Depends(require_admin)):
+    """Get system settings"""
+    settings = await db.system_settings.find_one({"type": "global"}, {"_id": 0})
+    if not settings:
+        settings = {
+            "type": "global",
+            "terms_of_use": "",
+            "disclaimer_text": "",
+            "weekly_email_enabled": True
+        }
+    return settings
+
+@api_router.put("/admin/settings")
+async def admin_update_settings(settings: SystemSettings, admin: dict = Depends(require_super_admin)):
+    """Update system settings"""
+    update_doc = {"updated_at": datetime.now(timezone.utc).isoformat(), "updated_by": admin["id"]}
+    
+    if settings.terms_of_use is not None:
+        update_doc["terms_of_use"] = settings.terms_of_use
+    if settings.disclaimer_text is not None:
+        update_doc["disclaimer_text"] = settings.disclaimer_text
+    if settings.weekly_email_enabled is not None:
+        update_doc["weekly_email_enabled"] = settings.weekly_email_enabled
+    
+    await db.system_settings.update_one(
+        {"type": "global"},
+        {"$set": update_doc},
+        upsert=True
+    )
+    
+    await log_admin_action(admin["id"], "update_settings", "Updated system settings", update_doc)
+    
+    return {"message": "Settings updated successfully"}
+
+# Public endpoint for terms and disclaimer
+@api_router.get("/settings/public")
+async def get_public_settings():
+    """Get public system settings (terms, disclaimer)"""
+    settings = await db.system_settings.find_one({"type": "global"}, {"_id": 0})
+    if not settings:
+        return {"terms_of_use": "", "disclaimer_text": ""}
+    return {
+        "terms_of_use": settings.get("terms_of_use", ""),
+        "disclaimer_text": settings.get("disclaimer_text", "")
+    }
+
+# Audit Logs
+@api_router.get("/admin/audit-logs")
+async def admin_get_audit_logs(
+    limit: int = 100,
+    action_type: Optional[str] = None,
+    admin: dict = Depends(require_admin)
+):
+    """Get admin audit logs"""
+    query = {}
+    if action_type:
+        query["action_type"] = action_type
+    
+    logs = await db.admin_audit_logs.find(query, {"_id": 0}).sort("timestamp", -1).to_list(limit)
+    
+    # Enrich with admin names
+    admin_ids = list(set(log.get("admin_id") for log in logs))
+    admins = await db.users.find({"id": {"$in": admin_ids}}, {"_id": 0, "id": 1, "name": 1, "email": 1}).to_list(100)
+    admin_map = {a["id"]: a for a in admins}
+    
+    for log in logs:
+        admin_info = admin_map.get(log.get("admin_id"), {})
+        log["admin_name"] = admin_info.get("name", "Unknown")
+        log["admin_email"] = admin_info.get("email", "")
+    
+    return logs
+
+# Dashboard stats for admin
+@api_router.get("/admin/stats")
+async def admin_get_stats(admin: dict = Depends(require_admin)):
+    """Get admin dashboard statistics"""
+    total_users = await db.users.count_documents({})
+    active_users = await db.users.count_documents({"account_status": {"$ne": AccountStatus.DEACTIVATED}})
+    admin_users = await db.users.count_documents({"role": {"$in": [UserRole.ADMIN, UserRole.SUPER_ADMIN]}})
+    
+    # Recent activity
+    today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    week_ago = today - timedelta(days=7)
+    
+    new_users_today = await db.users.count_documents({"created_at": {"$gte": today.isoformat()}})
+    new_users_week = await db.users.count_documents({"created_at": {"$gte": week_ago.isoformat()}})
+    
+    total_classifications = await db.classifications.count_documents({})
+    total_alcohol_calcs = await db.alcohol_calculations.count_documents({})
+    total_vehicle_calcs = await db.vehicle_calculations.count_documents({})
+    
+    active_notifications = await db.broadcast_notifications.count_documents({"is_active": True})
+    
+    return {
+        "users": {
+            "total": total_users,
+            "active": active_users,
+            "admins": admin_users,
+            "new_today": new_users_today,
+            "new_this_week": new_users_week
+        },
+        "activity": {
+            "total_classifications": total_classifications,
+            "total_alcohol_calculations": total_alcohol_calcs,
+            "total_vehicle_calculations": total_vehicle_calcs
+        },
+        "notifications": {
+            "active": active_notifications
+        }
+    }
+
+# First login password/secret code change
+@api_router.post("/auth/complete-setup")
+async def complete_account_setup(
+    new_password: str = Body(...),
+    secret_code: str = Body(...),
+    user: dict = Depends(get_current_user)
+):
+    """Complete account setup (change password and set secret code on first login)"""
+    # Validate secret code
+    if not secret_code.isdigit() or len(secret_code) < 4 or len(secret_code) > 6:
+        raise HTTPException(status_code=400, detail="Secret code must be 4-6 digits")
+    
+    if len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {
+            "password": hash_password(new_password),
+            "secret_code": hash_password(secret_code),
+            "must_change_password": False,
+            "must_set_secret_code": False,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Account setup completed successfully"}
 
 # ============= ALCOHOL CALCULATION MODULE =============
 
