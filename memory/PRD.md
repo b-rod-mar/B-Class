@@ -330,6 +330,11 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] Added "User Updated" status with yellow highlighting for edited classification items
 - [x] Auto-sets status to "user_updated" when saving changes from "needs_review"
 - [x] Added "User Updated" count summary card to classification results
+- [x] **User Profile System** - Complete profile page with avatar, account info, security settings
+- [x] **Account Secret Code** - 4-6 digit recovery code required during registration
+- [x] **Profile Dropdown Menu** - User avatar in sidebar with My Profile, Settings, Sign Out
+- [x] **Secret Code Recovery** - Alternative password reset using email + secret code
+- [x] **Profile Management APIs** - Update profile, email, password, secret code endpoints
 
 ### Notations Page UI (Jan 31, 2026)
 - [x] **Stats Cards** - Total Notes, Entry Refs, Tariff Codes, General Notes counts
