@@ -303,3 +303,8 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] Added HS Code Library flag legend (Restricted/Requires Permit icons)
 - [x] Updated vehicle bulk upload template with body_style column
 - [x] Updated frontend template info with body_style documentation
+- [x] Fixed Environmental Levy warning to say "11 years or older" (not dynamic age)
+- [x] Added Forgot Password feature (email entry → reset link)
+- [x] Added Reset Password page (new password entry with token)
+- [x] Added "Forgot password?" link to Login page
+- [x] Implemented weekly account creation log (auto-emails to admin)
