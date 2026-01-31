@@ -32,10 +32,12 @@ import {
   ChevronDown,
   Shield,
   Info,
-  Loader2
+  Loader2,
+  BookOpen
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn, formatDate, getConfidenceColor, getConfidenceLabel, getStatusColor, getStatusLabel, formatCurrency } from '../lib/utils';
+import HSCodeAutoSuggest from '../components/HSCodeAutoSuggest';
 
 export default function ClassificationResultPage() {
   const { id } = useParams();
