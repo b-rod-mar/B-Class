@@ -912,6 +912,32 @@ export default function VehicleCalculatorPage() {
                         ))}
                       </div>
                     )}
+
+                    {/* Generate Invoice Button */}
+                    <div className="pt-4">
+                      <Button 
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                        onClick={async () => {
+                          try {
+                            const response = await api.get(`/vehicle/calculations/${result.id}/invoice`, { responseType: 'blob' });
+                            const url = window.URL.createObjectURL(new Blob([response.data]));
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.setAttribute('download', `vehicle_invoice_${result.make}_${result.model}.xlsx`);
+                            document.body.appendChild(link);
+                            link.click();
+                            link.remove();
+                            toast.success('Invoice downloaded!');
+                          } catch (error) {
+                            toast.error('Failed to generate invoice');
+                          }
+                        }}
+                        data-testid="generate-invoice-btn"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Generate Invoice (Excel)
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ) : (
