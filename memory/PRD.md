@@ -138,7 +138,7 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [ ] Batch alcohol shipment processing
 
 ### P2 (Medium Priority)
-- [ ] ASYCUDA World direct integration
+- [ ] Electronic Single Window direct integration
 - [ ] Classification comparison (before/after edit)
 - [ ] Team/organization accounts
 - [ ] API rate limiting
