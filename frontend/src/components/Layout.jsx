@@ -120,28 +120,43 @@ export default function Layout() {
 
           {/* User section - fixed at bottom */}
           <div className="flex-shrink-0 p-4 border-t border-border">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
-                <span className="text-sm font-medium">
-                  {user?.name?.charAt(0).toUpperCase() || 'U'}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{user?.name || 'User'}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-              </div>
-            </div>
-            <div className="space-y-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" data-testid="user-dropdown-trigger">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="text-sm font-medium text-primary">
+                      {user?.name?.charAt(0).toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-sm font-medium truncate">{user?.name || 'User'}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => { setSidebarOpen(false); navigate('/profile'); }} data-testid="profile-menu-item">
+                  <User className="h-4 w-4 mr-2" />
+                  My Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { setSidebarOpen(false); navigate('/profile'); }} data-testid="settings-menu-item">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Account Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleLogout}
+                  className="text-rose-400 focus:text-rose-300 focus:bg-rose-500/10"
+                  data-testid="logout-menu-item"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <div className="mt-3 space-y-2">
               <FeedbackDialog />
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start text-muted-foreground hover:text-destructive"
-                onClick={handleLogout}
-                data-testid="logout-btn"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
             </div>
           </div>
           
