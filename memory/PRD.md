@@ -116,6 +116,20 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] **Rich Information** - Shows code, description, duty rate, flags
 - [x] **One-Click Apply** - Select to auto-fill code and description
 - [x] **Classification Edit Integration** - Available when editing items
+- [x] **Global HS Codes Imported** - 6,941 total codes in library
+
+### Customs Forms Module (Jan 31, 2026)
+- [x] **104 Official Forms** - Complete Bahamas Customs forms list
+- [x] **Categories** - Reporting, Import, Export, Transit, Warehousing, Bonds, IPR, etc.
+- [x] **Form Details** - Number, name, description, usage, where to obtain
+- [x] **Searchable** - Find forms by number or name
+
+### Country Codes Module (Jan 31, 2026)
+- [x] **241 Countries** - Official Bahamas Customs numeric codes
+- [x] **Customs Code** - 3-digit numeric code for declarations
+- [x] **ISO Code** - 2-letter country code
+- [x] **Trade Agreements** - CARICOM member identification
+- [x] **Regional Groupings** - Caribbean, North America, Europe, Asia, Africa, etc.
 
 ### Design
 - Dark mode with Electric Teal (#2DD4BF) accents
@@ -123,6 +137,7 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - Glassmorphism login card with shipping port background
 - Bento grid dashboard layout
 - **Branding: Class-B HS Code Agent** (updated Jan 31, 2026)
+- **Electronic Single Window Ready** (replaced ASYCUDA references)
 
 ## Prioritized Backlog
 
