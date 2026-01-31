@@ -91,6 +91,7 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] **Permit Requirements** - Flags for items requiring permits
 - [x] **Searchable** - Full-text search by code or description
 - [x] **Editable** - Add, edit, delete codes as needed
+- [x] **Import from Template** - Bulk import HS codes via CSV/Excel (Jan 31, 2026)
 
 ### CMA Reference Module (Jan 31, 2026)
 - [x] **21 Regulations** - Comprehensive CMA coverage
