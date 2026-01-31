@@ -171,6 +171,28 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handlePermanentDeleteUser = async () => {
+    if (!selectedUser) return;
+    if (deleteConfirmText !== 'DELETE') {
+      toast.error('Please type DELETE to confirm');
+      return;
+    }
+    
+    setDeleting(true);
+    try {
+      const response = await api.delete(`/admin/users/${selectedUser.id}/permanent`);
+      toast.success(`User ${selectedUser.email} and all their data permanently deleted`);
+      setDeleteUserOpen(false);
+      setSelectedUser(null);
+      setDeleteConfirmText('');
+      loadAdminData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete user');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const handleBroadcast = async () => {
     if (!notification.title || !notification.message) {
       toast.error('Please fill all fields');
