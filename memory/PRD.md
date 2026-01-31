@@ -321,3 +321,6 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] **Country Dropdown** - Select dropdown with all 195 recognized countries
 - [x] **Popular Countries** - Quick access to Japan, USA, Germany, South Korea, China, etc.
 - [x] **A-Z Full List** - Scrollable list of all countries alphabetically
+- [x] **Download Guide PDF** - "Download Guide" button generates comprehensive PDF
+- [x] **PDF Content** - Duty rates by vehicle type/engine, environmental levy rules, fees, example calculation
+- [x] **Currency Selector** - USD $ or BSD $ dropdown for CIF Value (1:1 pegged)
