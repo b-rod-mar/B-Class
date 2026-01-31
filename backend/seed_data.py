@@ -306,6 +306,38 @@ CMA_REGULATIONS = [
         "content": "The Bahamas is a member of CARICOM (Caribbean Community). Goods of CARICOM origin may qualify for duty-free or reduced-duty treatment. Requirements: goods must be 'wholly produced' or meet minimum local content rules, accompanied by CARICOM Certificate of Origin, shipped directly from CARICOM member state. Common External Tariff (CET) applies to non-CARICOM goods.",
         "keywords": ["CARICOM", "Caribbean", "certificate of origin", "duty-free", "trade agreement", "CET"]
     },
+    {
+        "category": "Special Provisions",
+        "section": "Hawksbill Creek Agreement",
+        "title": "The Hawksbill Creek Agreement - Overview",
+        "reference": "Hawksbill Creek Agreement Act, Chapter 261",
+        "content": "The Hawksbill Creek Agreement is a landmark 1955 treaty between the Government of The Bahamas and the Grand Bahama Port Authority Ltd. (GBPA) that established the Freeport area on Grand Bahama Island. Named after Hawksbill Creek, a body of water in the area, this agreement created one of the world's largest free trade zones and transformed Grand Bahama from a sparsely populated island into a major commercial and industrial center.",
+        "keywords": ["Hawksbill Creek", "Grand Bahama", "GBPA", "Port Authority", "Freeport", "free trade zone", "1955", "treaty"]
+    },
+    {
+        "category": "Special Provisions",
+        "section": "Hawksbill Creek Agreement",
+        "title": "Historical Background",
+        "reference": "Hawksbill Creek Agreement Act, Chapter 261",
+        "content": "In 1955, American financier Wallace Groves negotiated the agreement with the Bahamian colonial government (then under British rule). The original agreement granted the Port Authority the right to develop a 50,000-acre area with significant tax concessions for 99 years (until 2054). The agreement has been amended multiple times, most notably in 1960 (extending the bonded area) and 1993 (redefining certain provisions after Bahamian independence in 1973). The agreement survived independence and remains in effect, though subject to ongoing negotiations between the Government and the Port Authority.",
+        "keywords": ["Wallace Groves", "1955", "colonial", "99 years", "2054", "1960", "1993", "independence", "history"]
+    },
+    {
+        "category": "Special Provisions",
+        "section": "Hawksbill Creek Agreement",
+        "title": "Duty and Tax Exemptions Under Hawksbill Creek",
+        "reference": "Hawksbill Creek Agreement Act, Sections 6-10",
+        "content": "Licensees operating within the Port Area enjoy significant tax benefits including: (1) No customs duties on goods imported for use within the Port Area or for re-export, (2) No real property taxes until 2054, (3) No business license fees for manufacturing, (4) No personal income tax (applies to all Bahamas), (5) No capital gains tax. To qualify, businesses must obtain a license from the Grand Bahama Port Authority. Goods consumed domestically (outside the Port Area) remain subject to normal customs duties. The C14 Entry Form is used for goods imported under Hawksbill Creek provisions.",
+        "keywords": ["duty exemption", "tax exemption", "property tax", "license", "C14", "Port Area", "re-export", "manufacturing"]
+    },
+    {
+        "category": "Special Provisions",
+        "section": "Hawksbill Creek Agreement",
+        "title": "Implications for Importers and Businesses",
+        "reference": "Hawksbill Creek Agreement Act, Sections 11-15",
+        "content": "For customs brokers and importers, the Hawksbill Creek Agreement means: (1) Different entry procedures (Form C14) apply for goods destined for Freeport, (2) Goods may enter the Port Area duty-free but become dutiable if transferred to Nassau or other islands, (3) Proof of consumption within the Port Area may be required for audit purposes, (4) Port Authority license verification is required for duty-free treatment, (5) Disputes over Hawksbill Creek provisions are handled through specific channels involving the Port Authority. Brokers should verify their client's licensee status before claiming duty exemptions.",
+        "keywords": ["importer", "broker", "C14", "licensee", "transfer", "audit", "verification", "dispute", "entry procedures"]
+    },
 ]
 
 async def seed_hs_codes():
