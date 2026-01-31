@@ -1155,44 +1155,121 @@ class AlcoholCalculationResult(BaseModel):
     requires_permit: bool
     created_at: datetime
 
-# Bahamas Alcohol Duty Rates (CMA Compliant)
+# Bahamas Alcohol Duty Rates (Official Rates per Customs Broker Training)
 ALCOHOL_RATES = {
     "wine": {
-        "hs_code": "2204.21",
-        "hs_description": "Wine of fresh grapes, in containers holding 2L or less",
-        "import_duty_rate": 0.35,  # 35%
-        "excise_per_liter": 3.50,  # $3.50 per liter
+        "hs_code": "2204.2190",
+        "hs_description": "Wine of fresh grapes (Claret, Shiraz, Port, Sherry)",
+        "import_duty_rate": 0.50,  # 50%
+        "duty_per_imperial_gallon": None,  # Ad valorem only
+        "duty_type": "ad_valorem",
         "requires_permit": False
     },
     "beer": {
-        "hs_code": "2203.00",
+        "hs_code": "2203.0090",
         "hs_description": "Beer made from malt",
-        "import_duty_rate": 0.35,  # 35%
-        "excise_per_liter": 1.50,  # $1.50 per liter
+        "import_duty_rate": 0.10,  # 10% ad valorem
+        "duty_per_imperial_gallon": 10.00,  # $10 per Imperial Gallon
+        "duty_type": "specific_plus_ad_valorem",
+        "requires_permit": False
+    },
+    "ale": {
+        "hs_code": "2203.0010",
+        "hs_description": "Ale",
+        "import_duty_rate": 0.10,  # 10% ad valorem
+        "duty_per_imperial_gallon": 10.00,  # $10 per Imperial Gallon
+        "duty_type": "specific_plus_ad_valorem",
+        "requires_permit": False
+    },
+    "stout": {
+        "hs_code": "2203.0030",
+        "hs_description": "Stout",
+        "import_duty_rate": 0.10,  # 10% ad valorem
+        "duty_per_imperial_gallon": 10.00,  # $10 per Imperial Gallon
+        "duty_type": "specific_plus_ad_valorem",
         "requires_permit": False
     },
     "spirits": {
-        "hs_code": "2208.40",
-        "hs_description": "Rum and other spirits obtained by distilling fermented cane products",
-        "import_duty_rate": 0.45,  # 45%
-        "excise_per_lpa": 20.00,  # $20.00 per liter of pure alcohol (LPA)
+        "hs_code": "2208.4010",
+        "hs_description": "Rum and spirits by distillation (Whisky, Vodka, Gin, Brandy)",
+        "import_duty_rate": 0.0,  # Spirits use proof gallon rate only
+        "duty_per_proof_gallon": 15.00,  # $15 per Proof Gallon
+        "duty_type": "proof_gallon",
+        "requires_permit": True
+    },
+    "whisky": {
+        "hs_code": "2208.3010",
+        "hs_description": "Whisky (Bourbon/Scotch)",
+        "import_duty_rate": 0.0,
+        "duty_per_proof_gallon": 15.00,  # $15 per Proof Gallon
+        "duty_type": "proof_gallon",
+        "requires_permit": True
+    },
+    "vodka": {
+        "hs_code": "2208.6000",
+        "hs_description": "Vodka",
+        "import_duty_rate": 0.0,
+        "duty_per_proof_gallon": 15.00,  # $15 per Proof Gallon
+        "duty_type": "proof_gallon",
+        "requires_permit": True
+    },
+    "rum": {
+        "hs_code": "2208.4010",
+        "hs_description": "Rum",
+        "import_duty_rate": 0.0,
+        "duty_per_proof_gallon": 15.00,  # $15 per Proof Gallon
+        "duty_type": "proof_gallon",
+        "requires_permit": True
+    },
+    "brandy": {
+        "hs_code": "2208.2010",
+        "hs_description": "Brandy/Cognac",
+        "import_duty_rate": 0.0,
+        "duty_per_proof_gallon": 15.00,  # $15 per Proof Gallon
+        "duty_type": "proof_gallon",
         "requires_permit": True
     },
     "liqueur": {
-        "hs_code": "2208.70",
+        "hs_code": "2208.7000",
         "hs_description": "Liqueurs and cordials",
-        "import_duty_rate": 0.45,  # 45%
-        "excise_per_lpa": 18.00,  # $18.00 per liter of pure alcohol
+        "import_duty_rate": 0.0,
+        "duty_per_imperial_gallon": 15.00,  # $15 per Imperial Gallon
+        "duty_type": "imperial_gallon",
+        "requires_permit": True
+    },
+    "tequila": {
+        "hs_code": "2208.9090",
+        "hs_description": "Tequila",
+        "import_duty_rate": 0.0,
+        "duty_per_imperial_gallon": 15.00,  # $15 per Imperial Gallon
+        "duty_type": "imperial_gallon",
+        "requires_permit": True
+    },
+    "bitters": {
+        "hs_code": "2208.7000",
+        "hs_description": "Bitters",
+        "import_duty_rate": 0.0,
+        "duty_per_imperial_gallon": 15.00,  # $15 per Imperial Gallon
+        "duty_type": "imperial_gallon",
         "requires_permit": True
     },
     "other": {
-        "hs_code": "2208.90",
+        "hs_code": "2208.9090",
         "hs_description": "Other spirituous beverages",
-        "import_duty_rate": 0.40,  # 40%
-        "excise_per_lpa": 15.00,  # $15.00 per liter of pure alcohol
+        "import_duty_rate": 0.0,
+        "duty_per_imperial_gallon": 15.00,  # $15 per Imperial Gallon
+        "duty_type": "imperial_gallon",
         "requires_permit": True
     }
 }
+
+# Conversion constants (from Bahamas Customs Broker Training)
+LITERS_TO_IMPERIAL_GALLON = 0.22  # 1 liter = 0.22 imperial gallons
+US_OZ_TO_IMPERIAL_GALLON = 153.6  # Divide US oz by this to get imperial gallons
+UK_OZ_TO_IMPERIAL_GALLON = 160    # Divide UK oz by this to get imperial gallons
+US_GALLON_TO_IMPERIAL_GALLON = 0.833  # Multiply US gal by this
+ABV_TO_BRITISH_PROOF = 1.75  # Multiply % ABV by this for British Proof
+US_PROOF_TO_BRITISH_PROOF = 0.875  # Multiply US Proof by this
 
 VAT_RATE = 0.10  # 10% VAT (Bahamas current rate)
 LICENSE_FEE_BASE = 50.00  # Base license processing fee
@@ -1202,54 +1279,91 @@ async def calculate_alcohol_duties(
     request: AlcoholCalculationRequest,
     user: dict = Depends(get_current_user)
 ):
-    """Calculate duties, excise, VAT, and fees for alcohol imports"""
+    """Calculate duties using official Bahamas Customs methodology"""
     
     rates = ALCOHOL_RATES.get(request.alcohol_type, ALCOHOL_RATES["other"])
     warnings = []
+    calculation_steps = []
     
-    # Calculate volumes
+    # Step 1: Convert volume to Liters
     volume_per_unit_liters = request.volume_ml / 1000
     total_volume_liters = volume_per_unit_liters * request.quantity
-    pure_alcohol_liters = total_volume_liters * (request.alcohol_percentage / 100)
+    calculation_steps.append(f"Volume: {request.volume_ml}ml × {request.quantity} units = {total_volume_liters:.2f} liters")
     
-    # Calculate Import Duty
-    import_duty = request.cif_value * rates["import_duty_rate"]
+    # Step 2: Convert to Imperial Gallons
+    imperial_gallons = total_volume_liters * LITERS_TO_IMPERIAL_GALLON
+    calculation_steps.append(f"Imperial Gallons: {total_volume_liters:.2f}L × 0.22 = {imperial_gallons:.4f} IG")
     
-    # Calculate Excise Duty
-    if request.alcohol_type in ["spirits", "liqueur", "other"]:
-        # Spirits: charged per liter of pure alcohol (LPA)
-        excise_rate = rates.get("excise_per_lpa", 15.00)
-        excise_duty = pure_alcohol_liters * excise_rate
-        excise_calculation = f"{pure_alcohol_liters:.2f} LPA × ${excise_rate:.2f}/LPA"
-    else:
-        # Beer/Wine: charged per liter of beverage
-        excise_rate = rates.get("excise_per_liter", 2.00)
-        excise_duty = total_volume_liters * excise_rate
-        excise_calculation = f"{total_volume_liters:.2f}L × ${excise_rate:.2f}/L"
+    # Step 3: Calculate duty based on type
+    duty_type = rates.get("duty_type", "ad_valorem")
+    import_duty = 0.0
+    excise_duty = 0.0
+    excise_calculation = ""
+    proof_gallons = 0.0
+    british_proof_strength = 0.0
     
-    # Calculate VAT (on CIF + Duty + Excise)
+    if duty_type == "proof_gallon":
+        # Spirits: Convert ABV to British Proof and calculate Proof Gallons
+        british_proof_strength = request.alcohol_percentage * ABV_TO_BRITISH_PROOF
+        proof_gallons = imperial_gallons * british_proof_strength
+        excise_duty = proof_gallons * rates["duty_per_proof_gallon"]
+        
+        calculation_steps.append(f"British Proof: {request.alcohol_percentage}% × 1.75 = {british_proof_strength:.2f} BP")
+        calculation_steps.append(f"Proof Gallons: {imperial_gallons:.4f} IG × {british_proof_strength:.2f} = {proof_gallons:.4f} PG")
+        calculation_steps.append(f"Duty: {proof_gallons:.4f} PG × ${rates['duty_per_proof_gallon']:.2f}/PG = ${excise_duty:.2f}")
+        excise_calculation = f"{proof_gallons:.4f} PG × ${rates['duty_per_proof_gallon']:.2f}/PG"
+        
+    elif duty_type == "imperial_gallon":
+        # Liqueurs, Tequila, Bitters: $15 per Imperial Gallon
+        excise_duty = imperial_gallons * rates["duty_per_imperial_gallon"]
+        
+        calculation_steps.append(f"Duty: {imperial_gallons:.4f} IG × ${rates['duty_per_imperial_gallon']:.2f}/IG = ${excise_duty:.2f}")
+        excise_calculation = f"{imperial_gallons:.4f} IG × ${rates['duty_per_imperial_gallon']:.2f}/IG"
+        
+    elif duty_type == "specific_plus_ad_valorem":
+        # Beer/Ale/Stout: $10 per Imperial Gallon + 10% ad valorem
+        specific_duty = imperial_gallons * rates["duty_per_imperial_gallon"]
+        ad_valorem_duty = request.cif_value * rates["import_duty_rate"]
+        excise_duty = specific_duty
+        import_duty = ad_valorem_duty
+        
+        calculation_steps.append(f"Specific Duty: {imperial_gallons:.4f} IG × ${rates['duty_per_imperial_gallon']:.2f}/IG = ${specific_duty:.2f}")
+        calculation_steps.append(f"Ad Valorem: ${request.cif_value:.2f} × {rates['import_duty_rate']*100:.0f}% = ${ad_valorem_duty:.2f}")
+        excise_calculation = f"{imperial_gallons:.4f} IG × ${rates['duty_per_imperial_gallon']:.2f}/IG + {rates['import_duty_rate']*100:.0f}% CIF"
+        
+    else:  # ad_valorem (wine)
+        import_duty = request.cif_value * rates["import_duty_rate"]
+        calculation_steps.append(f"Import Duty: ${request.cif_value:.2f} × {rates['import_duty_rate']*100:.0f}% = ${import_duty:.2f}")
+        excise_calculation = f"Ad valorem: {rates['import_duty_rate']*100:.0f}% of CIF value"
+    
+    # Calculate VAT (on CIF + all duties)
     vat_base = request.cif_value + import_duty + excise_duty
     vat = vat_base * VAT_RATE
+    calculation_steps.append(f"VAT Base: ${request.cif_value:.2f} + ${import_duty:.2f} + ${excise_duty:.2f} = ${vat_base:.2f}")
+    calculation_steps.append(f"VAT: ${vat_base:.2f} × 10% = ${vat:.2f}")
     
     # Calculate License Fee
     license_fee = 0.0
     if request.has_liquor_license:
         license_fee = LICENSE_FEE_BASE
         if request.quantity > 24:
-            license_fee += (request.quantity - 24) * 0.50  # Additional fee for bulk
+            license_fee += (request.quantity - 24) * 0.50
     
     # Total Landed Cost
     total_landed_cost = request.cif_value + import_duty + excise_duty + vat + license_fee
     
+    # Pure alcohol calculation (for reference)
+    pure_alcohol_liters = total_volume_liters * (request.alcohol_percentage / 100)
+    
     # Warnings and flags
     if request.alcohol_percentage > 40:
-        warnings.append("High ABV product (>40%) - may require additional inspection")
+        warnings.append("High ABV product (>40%) - verify proof gallon calculation")
     if total_volume_liters > 10 and not request.has_liquor_license:
-        warnings.append("Volume exceeds personal use allowance - liquor license recommended")
-    if rates["requires_permit"]:
-        warnings.append(f"Import permit required for {request.alcohol_type.value}")
+        warnings.append("Volume exceeds personal use allowance - liquor license required")
+    if rates.get("requires_permit"):
+        warnings.append(f"Import permit required for {request.alcohol_type}")
     if request.cif_value > 5000:
-        warnings.append("High value shipment - may be subject to additional documentation")
+        warnings.append("High value shipment - may require additional documentation")
     
     # Create calculation record
     calc_id = str(uuid.uuid4())
@@ -1261,14 +1375,20 @@ async def calculate_alcohol_duties(
         "hs_code": rates["hs_code"],
         "hs_description": rates["hs_description"],
         "quantity": request.quantity,
+        "volume_ml": request.volume_ml,
         "total_volume_liters": round(total_volume_liters, 2),
+        "imperial_gallons": round(imperial_gallons, 4),
         "alcohol_percentage": request.alcohol_percentage,
-        "pure_alcohol_liters": round(pure_alcohol_liters, 2),
+        "british_proof_strength": round(british_proof_strength, 2) if british_proof_strength else None,
+        "proof_gallons": round(proof_gallons, 4) if proof_gallons else None,
+        "pure_alcohol_liters": round(pure_alcohol_liters, 4),
         "cif_value": round(request.cif_value, 2),
         "import_duty": round(import_duty, 2),
         "import_duty_rate": f"{rates['import_duty_rate'] * 100:.0f}%",
         "excise_duty": round(excise_duty, 2),
         "excise_calculation": excise_calculation,
+        "duty_type": duty_type,
+        "calculation_steps": calculation_steps,
         "vat": round(vat, 2),
         "vat_rate": f"{VAT_RATE * 100:.0f}%",
         "license_fee": round(license_fee, 2),
