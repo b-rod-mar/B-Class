@@ -13,6 +13,7 @@ import CMASearchPage from './pages/CMASearchPage';
 import CustomsFormsPage from './pages/CustomsFormsPage';
 import CountryCodesPage from './pages/CountryCodesPage';
 import NotationsPage from './pages/NotationsPage';
+import TariffsDutiesPage from './pages/TariffsDutiesPage';
 import Layout from './components/Layout';
 import './App.css';
 
