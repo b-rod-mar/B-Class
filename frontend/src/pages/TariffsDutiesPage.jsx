@@ -457,31 +457,35 @@ export default function TariffsDutiesPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {TARIFF_SECTIONS.map((section) => (
-                  <div 
-                    key={section.section} 
-                    className="p-4 border rounded-lg hover:bg-muted/30 transition-colors cursor-pointer"
-                    data-testid={`section-${section.section}`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl">{section.icon}</span>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="font-mono">
-                            Section {section.section}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            Ch. {section.chapters}
-                          </span>
+              {filteredSections.length === 0 && searchQuery ? (
+                <p className="text-center text-muted-foreground py-8">No sections match "{searchQuery}"</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {filteredSections.map((section) => (
+                    <div 
+                      key={section.section} 
+                      className="p-4 border rounded-lg hover:bg-muted/30 transition-colors cursor-pointer"
+                      data-testid={`section-${section.section}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">{section.icon}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="font-mono">
+                              Section {section.section}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              Ch. {section.chapters}
+                            </span>
+                          </div>
+                          <p className="font-medium mt-1">{section.title}</p>
                         </div>
-                        <p className="font-medium mt-1">{section.title}</p>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
                       </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -500,24 +504,31 @@ export default function TariffsDutiesPage() {
             </CardHeader>
           </Card>
 
-          {EXCISE_DUTIES.map((category, idx) => (
-            <Card key={idx}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  {category.category === 'Alcoholic Beverages' && <Wine className="h-5 w-5" />}
-                  {category.category === 'Tobacco Products' && <Cigarette className="h-5 w-5" />}
-                  {category.category === 'Petroleum Products' && <Package className="h-5 w-5" />}
-                  {category.category}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {category.items.map((item, itemIdx) => (
-                    <div key={itemIdx} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div>
-                        <p className="font-medium">{item.item}</p>
-                        <p className="text-xs text-muted-foreground">{item.notes}</p>
-                      </div>
+          {filteredExcise.length === 0 && searchQuery ? (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                No excise duties match "{searchQuery}"
+              </CardContent>
+            </Card>
+          ) : (
+            filteredExcise.map((category, idx) => (
+              <Card key={idx}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    {category.category === 'Alcoholic Beverages' && <Wine className="h-5 w-5" />}
+                    {category.category === 'Tobacco Products' && <Cigarette className="h-5 w-5" />}
+                    {category.category === 'Petroleum Products' && <Package className="h-5 w-5" />}
+                    {category.category}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {category.items.map((item, itemIdx) => (
+                      <div key={itemIdx} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div>
+                          <p className="font-medium">{item.item}</p>
+                          <p className="text-xs text-muted-foreground">{item.notes}</p>
+                        </div>
                       <Badge className="font-mono bg-amber-500/20 text-amber-400 border-amber-500/30">
                         {item.rate}
                       </Badge>
