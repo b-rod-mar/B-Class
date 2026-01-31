@@ -18,6 +18,7 @@ import NotationsPage from './pages/NotationsPage';
 import TariffsDutiesPage from './pages/TariffsDutiesPage';
 import VehicleCalculatorPage from './pages/VehicleCalculatorPage';
 import ProfilePage from './pages/ProfilePage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 import Layout from './components/Layout';
 import './App.css';
 
