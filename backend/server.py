@@ -3021,6 +3021,96 @@ async def get_vehicle_checklist(user: dict = Depends(get_current_user)):
         }
     }
 
+# ============= FEEDBACK ENDPOINT =============
+class FeedbackRequest(BaseModel):
+    name: str
+    email: str
+    subject: str
+    message: str
+    feedback_type: str = "general"  # general, bug, feature, question
+
+@api_router.post("/feedback")
+async def submit_feedback(
+    feedback: FeedbackRequest,
+    user: Optional[dict] = None
+):
+    """Submit user feedback - sends to configured email"""
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    
+    # Store feedback in database
+    feedback_id = str(uuid.uuid4())
+    feedback_record = {
+        "id": feedback_id,
+        "name": feedback.name,
+        "email": feedback.email,
+        "subject": feedback.subject,
+        "message": feedback.message,
+        "feedback_type": feedback.feedback_type,
+        "user_id": user.get("id") if user else None,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.feedback.insert_one(feedback_record)
+    
+    # Send email notification
+    FEEDBACK_EMAIL = "gfp6ixhc@yourfeedback.anonaddy.me"
+    
+    # Create email content
+    email_body = f"""
+New Feedback Received - Class-B HS Code Agent
+
+Type: {feedback.feedback_type.upper()}
+From: {feedback.name} ({feedback.email})
+Subject: {feedback.subject}
+
+Message:
+{feedback.message}
+
+---
+Feedback ID: {feedback_id}
+Timestamp: {datetime.now(timezone.utc).isoformat()}
+"""
+    
+    # Try to send via SMTP (will work if SMTP is configured, otherwise just log)
+    try:
+        # Store for admin review regardless of email success
+        print(f"Feedback received from {feedback.email}: {feedback.subject}")
+        
+        # Attempt to use local mail or configured SMTP
+        smtp_host = os.environ.get('SMTP_HOST', 'localhost')
+        smtp_port = int(os.environ.get('SMTP_PORT', 25))
+        
+        msg = MIMEMultipart()
+        msg['From'] = f"Class-B Agent <noreply@classb-agent.com>"
+        msg['To'] = FEEDBACK_EMAIL
+        msg['Subject'] = f"[Class-B Feedback] {feedback.feedback_type.upper()}: {feedback.subject}"
+        msg.attach(MIMEText(email_body, 'plain'))
+        
+        # Only try SMTP if explicitly configured
+        if os.environ.get('SMTP_HOST'):
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+                server.sendmail(msg['From'], [FEEDBACK_EMAIL], msg.as_string())
+    except Exception as e:
+        # Log the error but don't fail - feedback is stored in DB
+        print(f"Email notification failed (feedback still saved): {str(e)}")
+    
+    return {
+        "message": "Thank you for your feedback! We'll review it shortly.",
+        "feedback_id": feedback_id
+    }
+
+@api_router.get("/feedback")
+async def get_feedback(user: dict = Depends(get_current_user)):
+    """Get feedback history (admin only in future)"""
+    feedback_list = await db.feedback.find(
+        {},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    return feedback_list
+
 # ============= ROOT ROUTE =============
 @api_router.get("/")
 async def root():
