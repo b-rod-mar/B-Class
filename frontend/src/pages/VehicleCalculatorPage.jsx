@@ -101,7 +101,9 @@ const initialFormState = {
   mileage: null,
   is_first_time_owner: false,
   qualifies_for_concession: false,
-  concession_type: ''
+  concession_type: '',
+  is_antique: false,
+  num_tires: 4
 };
 
 export default function VehicleCalculatorPage() {
@@ -114,6 +116,7 @@ export default function VehicleCalculatorPage() {
   const [rates, setRates] = useState(null);
   const [checklist, setChecklist] = useState(null);
   const [checklistOpen, setChecklistOpen] = useState(false);
+  const [deleting, setDeleting] = useState(null);
   
   // Bulk upload state
   const [uploadFile, setUploadFile] = useState(null);
