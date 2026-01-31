@@ -156,6 +156,20 @@ export default function HistoryPage() {
                         <ArrowRight className="h-4 w-4 ml-2" />
                       </Button>
                     </Link>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                      onClick={(e) => handleDelete(classification.id, e)}
+                      disabled={deleting === classification.id}
+                      data-testid={`delete-btn-${classification.id}`}
+                    >
+                      {deleting === classification.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
                 </div>
               </CardContent>
