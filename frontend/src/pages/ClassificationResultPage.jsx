@@ -347,12 +347,13 @@ export default function ClassificationResultPage() {
                       <td>
                         <Badge 
                           variant="outline"
-                          className={cn(
-                            "text-xs",
-                            item.review_status === 'user_updated' 
-                              ? 'status-user-updated'
-                              : getStatusColor(item.review_status)
-                          )}>
+                          className="text-xs"
+                          style={item.review_status === 'user_updated' ? {
+                            backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                            color: '#c084fc',
+                            borderColor: 'rgba(168, 85, 247, 0.3)'
+                          } : undefined}
+                        >
                           {item.review_status === 'user_updated' ? 'User Updated' : getStatusLabel(item.review_status)}
                         </Badge>
                       </td>
