@@ -436,6 +436,10 @@ Return as JSON array with these fields:
 # ============= AUTH ROUTES =============
 @api_router.post("/auth/register", response_model=dict)
 async def register(user_data: UserCreate):
+    # Validate secret_code (4-6 digits)
+    if not user_data.secret_code or not user_data.secret_code.isdigit() or len(user_data.secret_code) < 4 or len(user_data.secret_code) > 6:
+        raise HTTPException(status_code=400, detail="Account Secret Code must be 4-6 digits")
+    
     existing = await db.users.find_one({"email": user_data.email})
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -447,8 +451,10 @@ async def register(user_data: UserCreate):
         "name": user_data.name,
         "company": user_data.company,
         "password": hash_password(user_data.password),
+        "secret_code": hash_password(user_data.secret_code),  # Store hashed
         "role": UserRole.USER,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.users.insert_one(user_doc)
