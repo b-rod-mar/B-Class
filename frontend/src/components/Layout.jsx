@@ -89,7 +89,7 @@ export default function Layout() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 pt-20 lg:pt-4 space-y-1">
+          <nav className="flex-1 p-4 pt-20 lg:pt-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
