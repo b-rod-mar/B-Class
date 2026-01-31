@@ -563,6 +563,36 @@ export default function VehicleCalculatorPage() {
                   </div>
                 </div>
 
+                {/* Body Style */}
+                <div className="space-y-2">
+                  <Label htmlFor="body_style">Body Style / Vehicle Category</Label>
+                  <Select 
+                    value={formData.body_style} 
+                    onValueChange={(value) => setFormData({ ...formData, body_style: value })}
+                  >
+                    <SelectTrigger data-testid="body-style-select">
+                      <SelectValue placeholder="Select body style" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[400px]">
+                      {BODY_STYLE_CATEGORIES.map((category) => (
+                        <div key={category.category}>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
+                            {category.category}
+                          </div>
+                          {category.styles.map((style) => (
+                            <SelectItem key={style.value} value={style.value}>
+                              <div className="flex flex-col">
+                                <span>{style.label}</span>
+                                <span className="text-[10px] text-muted-foreground">{style.description}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Year & Condition */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
