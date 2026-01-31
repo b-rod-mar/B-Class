@@ -1862,6 +1862,8 @@ async def admin_update_settings(settings: SystemSettings, admin: dict = Depends(
         update_doc["disclaimer_text"] = settings.disclaimer_text
     if settings.weekly_email_enabled is not None:
         update_doc["weekly_email_enabled"] = settings.weekly_email_enabled
+    if settings.classi_knowledge is not None:
+        update_doc["classi_knowledge"] = settings.classi_knowledge
     
     await db.system_settings.update_one(
         {"type": "global"},
