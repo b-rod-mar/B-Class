@@ -814,12 +814,6 @@ export default function VehicleCalculatorPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                          {country}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
 
                 {/* Mileage (for used) */}
                 {!formData.is_new && (
