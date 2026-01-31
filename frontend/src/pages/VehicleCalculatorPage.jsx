@@ -680,10 +680,51 @@ export default function VehicleCalculatorPage() {
                     <AlertTriangle className="h-4 w-4" />
                     Environmental Levy Options
                   </h4>
-                  <div className="flex items-center justify-between">
+                  
+                  {/* Quick Apply Buttons */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "h-auto py-2 text-xs flex flex-col",
+                        formData.is_antique && "border-amber-500 bg-amber-500/10 text-amber-400"
+                      )}
+                      onClick={() => setFormData({ 
+                        ...formData, 
+                        is_antique: true,
+                        year: formData.year < 1980 ? formData.year : 1970 // Suggest vintage year
+                      })}
+                      data-testid="apply-antique-btn"
+                    >
+                      <span className="font-medium">Antique/Vintage</span>
+                      <span className="text-[10px] text-muted-foreground">$200 flat levy</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "h-auto py-2 text-xs flex flex-col",
+                        (new Date().getFullYear() - formData.year > 10 && !formData.is_antique) && "border-rose-500 bg-rose-500/10 text-rose-400"
+                      )}
+                      onClick={() => setFormData({ 
+                        ...formData, 
+                        year: new Date().getFullYear() - 11, // Set to 11 years ago to trigger 20% levy
+                        is_antique: false
+                      })}
+                      data-testid="apply-10year-btn"
+                    >
+                      <span className="font-medium">Over 10 Years</span>
+                      <span className="text-[10px] text-muted-foreground">20% levy + approval</span>
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-2">
                     <div className="space-y-0.5">
-                      <Label htmlFor="is_antique">Antique/Vintage Vehicle?</Label>
-                      <p className="text-xs text-muted-foreground">Classic cars requiring special approval ($200 flat levy)</p>
+                      <Label htmlFor="is_antique">Mark as Antique/Vintage?</Label>
+                      <p className="text-xs text-muted-foreground">Classic cars ($200 flat levy, requires approval)</p>
                     </div>
                     <Switch
                       id="is_antique"
@@ -714,9 +755,12 @@ export default function VehicleCalculatorPage() {
                     </div>
                   )}
                   
-                  <p className="text-[10px] text-muted-foreground">
-                    Note: Vehicles over 10 years old incur 20% Environmental Levy and require Ministry of Finance approval.
-                  </p>
+                  {/* Auto-detect warning */}
+                  {formData.year && (new Date().getFullYear() - formData.year > 10) && !formData.is_antique && (
+                    <div className="p-2 bg-rose-500/10 border border-rose-500/20 rounded text-xs text-rose-400">
+                      ⚠️ Vehicle is {new Date().getFullYear() - formData.year} years old — 20% Environmental Levy will apply. Ministry of Finance approval required.
+                    </div>
+                  )}
                 </div>
 
                 {/* Action Buttons */}
