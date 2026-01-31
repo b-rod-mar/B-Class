@@ -700,6 +700,197 @@ async def export_classification(
         )
 
 # ============= HS CODE LIBRARY ROUTES =============
+
+# Bulk HS Code Classification Template and Upload
+@api_router.get("/hs-codes/template")
+async def get_hs_classification_template(user: dict = Depends(get_current_user)):
+    """Download CSV template for bulk HS code classification"""
+    from fastapi.responses import StreamingResponse
+    
+    template_data = """description,quantity,unit,unit_value,total_value,country_of_origin
+Apple iPhone 15 Pro Max 256GB,10,pcs,999.00,9990.00,China
+Nike Air Jordan Basketball Shoes Size 10,24,pairs,180.00,4320.00,Vietnam
+Samsung 65 inch 4K Smart TV,5,units,1200.00,6000.00,South Korea
+Organic Colombian Coffee Beans 1kg bags,100,kg,15.00,1500.00,Colombia
+Cotton T-Shirts Assorted Colors,500,pcs,8.50,4250.00,Bangladesh
+Lithium Ion Batteries 5000mAh,200,pcs,12.00,2400.00,China
+Wooden Dining Table Oak 6-seater,3,units,850.00,2550.00,Malaysia
+Stainless Steel Kitchen Knives Set,50,sets,45.00,2250.00,Germany"""
+    
+    output = io.StringIO()
+    output.write(template_data)
+    output.seek(0)
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=hs_classification_template.csv"}
+    )
+
+@api_router.post("/hs-codes/bulk-classify")
+async def bulk_classify_items(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user)
+):
+    """Upload CSV/Excel file for bulk HS code classification using AI"""
+    
+    # Validate file type
+    file_ext = file.filename.split(".")[-1].lower()
+    if file_ext not in ["csv", "xlsx", "xls"]:
+        raise HTTPException(status_code=400, detail="Only CSV and Excel files are supported")
+    
+    content = await file.read()
+    
+    try:
+        if file_ext == "csv":
+            df = pd.read_csv(io.BytesIO(content))
+        else:
+            df = pd.read_excel(io.BytesIO(content))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error reading file: {str(e)}")
+    
+    # Normalize column names
+    df.columns = df.columns.str.lower().str.strip().str.replace(' ', '_')
+    
+    # Check for description column
+    if 'description' not in df.columns:
+        raise HTTPException(status_code=400, detail="Missing required 'description' column")
+    
+    # Prepare items for classification
+    items = []
+    for idx, row in df.iterrows():
+        if pd.notna(row.get('description')):
+            item = {
+                "original_description": str(row['description']),
+                "quantity": float(row['quantity']) if 'quantity' in df.columns and pd.notna(row.get('quantity')) else None,
+                "unit": str(row['unit']) if 'unit' in df.columns and pd.notna(row.get('unit')) else None,
+                "unit_value": float(row['unit_value']) if 'unit_value' in df.columns and pd.notna(row.get('unit_value')) else None,
+                "total_value": float(row['total_value']) if 'total_value' in df.columns and pd.notna(row.get('total_value')) else None,
+                "country_of_origin": str(row['country_of_origin']) if 'country_of_origin' in df.columns and pd.notna(row.get('country_of_origin')) else None
+            }
+            items.append(item)
+    
+    if not items:
+        raise HTTPException(status_code=400, detail="No valid items found in file")
+    
+    # Classify with AI
+    classified_items = await classify_items_with_ai(items)
+    
+    # Calculate stats
+    auto_approved = sum(1 for item in classified_items if item.get("review_status") == "auto_approved")
+    needs_review = len(classified_items) - auto_approved
+    avg_confidence = sum(item.get("confidence_score", 0) for item in classified_items) / len(classified_items) if classified_items else 0
+    
+    # Create batch record
+    batch_id = str(uuid.uuid4())
+    batch_record = {
+        "id": batch_id,
+        "user_id": user["id"],
+        "filename": file.filename,
+        "total_items": len(classified_items),
+        "auto_approved_count": auto_approved,
+        "needs_review_count": needs_review,
+        "avg_confidence": round(avg_confidence, 1),
+        "items": classified_items,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.hs_classification_batches.insert_one(batch_record)
+    
+    return {
+        "batch_id": batch_id,
+        "filename": file.filename,
+        "total_items": len(classified_items),
+        "auto_approved": auto_approved,
+        "needs_review": needs_review,
+        "avg_confidence": round(avg_confidence, 1),
+        "items": classified_items
+    }
+
+@api_router.get("/hs-codes/batches")
+async def get_hs_classification_batches(user: dict = Depends(get_current_user)):
+    """Get user's bulk classification history"""
+    batches = await db.hs_classification_batches.find(
+        {"user_id": user["id"]},
+        {"_id": 0, "items": 0}
+    ).sort("created_at", -1).to_list(50)
+    
+    for batch in batches:
+        if isinstance(batch.get("created_at"), str):
+            batch["created_at"] = datetime.fromisoformat(batch["created_at"])
+    
+    return batches
+
+@api_router.get("/hs-codes/batches/{batch_id}")
+async def get_hs_classification_batch(batch_id: str, user: dict = Depends(get_current_user)):
+    """Get specific batch details"""
+    batch = await db.hs_classification_batches.find_one(
+        {"id": batch_id, "user_id": user["id"]},
+        {"_id": 0}
+    )
+    if not batch:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    
+    if isinstance(batch.get("created_at"), str):
+        batch["created_at"] = datetime.fromisoformat(batch["created_at"])
+    
+    return batch
+
+@api_router.get("/hs-codes/batches/{batch_id}/export")
+async def export_hs_classification_batch(batch_id: str, format: str = "csv", user: dict = Depends(get_current_user)):
+    """Export bulk classification as CSV or Excel"""
+    from fastapi.responses import StreamingResponse
+    
+    batch = await db.hs_classification_batches.find_one(
+        {"id": batch_id, "user_id": user["id"]},
+        {"_id": 0}
+    )
+    if not batch:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    
+    # Prepare export data
+    export_data = []
+    for item in batch["items"]:
+        export_data.append({
+            "Description": item.get("clean_description", item.get("original_description", "")),
+            "HS Code": item.get("hs_code", ""),
+            "HS Description": item.get("hs_description", ""),
+            "Quantity": item.get("quantity", ""),
+            "Unit": item.get("unit", ""),
+            "Unit Value": item.get("unit_value", ""),
+            "Total Value": item.get("total_value", ""),
+            "Country of Origin": item.get("country_of_origin", ""),
+            "GRI Rules": ", ".join(item.get("gri_rules_applied", [])),
+            "Confidence %": item.get("confidence_score", 0),
+            "Review Status": item.get("review_status", ""),
+            "Reasoning": item.get("reasoning", ""),
+            "CMA Notes": item.get("cma_notes", ""),
+            "Restricted": "Yes" if item.get("is_restricted") else "No",
+            "Requires Permit": "Yes" if item.get("requires_permit") else "No"
+        })
+    
+    df = pd.DataFrame(export_data)
+    
+    if format == "xlsx":
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='HS Classifications')
+        output.seek(0)
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename=hs_classification_{batch_id[:8]}.xlsx"}
+        )
+    else:
+        output = io.StringIO()
+        df.to_csv(output, index=False)
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=hs_classification_{batch_id[:8]}.csv"}
+        )
+
 @api_router.get("/hs-codes", response_model=List[HSCodeResponse])
 async def get_hs_codes(
     search: Optional[str] = None,
