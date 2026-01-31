@@ -310,6 +310,8 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] Implemented weekly account creation log (auto-emails to admin)
 - [x] Added Alcohol Calculation Guide PDF download (Download Guide button)
 - [x] Added Country of Origin dropdown with 195 countries (Vehicle Calculator)
+- [x] Added Vehicle Calculation Guide PDF download (Download Guide button)
+- [x] Added Currency selector (USD/BSD) for CIF Value in Vehicle Calculator
 
 ### Alcohol Calculator Enhancements (Jan 31, 2026)
 - [x] **Download Guide PDF** - "Download Guide" button next to "View History"
