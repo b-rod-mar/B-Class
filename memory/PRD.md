@@ -139,6 +139,36 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] **Exemptions Tab** - Chapter 98 duty exemptions by category
 - [x] **Bahamas 2023 Tariff Rates** - 1,584 codes imported with actual duty rates
 
+### Vehicle Brokering Calculator (Jan 31, 2026)
+- [x] **Single Vehicle Calculator** - Calculate duties for individual vehicle imports
+- [x] **Duty Rate Tiers** - Electric/Hybrid (10-25%), Gasoline/Diesel (45-65%), Commercial (65-85%)
+- [x] **Engine Size Detection** - Automatic duty tier based on engine displacement (cc)
+- [x] **Value-Based Tiers** - Different rates for vehicles ≤$50k vs >$50k
+- [x] **Complete Breakdown** - Import Duty, Environmental Levy (1%), Stamp Duty (7%), VAT (10%), Processing Fee
+- [x] **Concessionary Rates** - Support for first-time owner, returning resident, disabled exemptions
+- [x] **Vehicle Types** - Electric, Hybrid, Gasoline, Diesel, Commercial
+- [x] **HS Code Assignment** - Automatic HS code (8703.xx) based on vehicle type
+- [x] **Bulk Upload** - CSV/Excel upload for batch vehicle calculations
+- [x] **Downloadable Template** - Pre-formatted CSV with sample vehicle data
+- [x] **Batch Results** - Summary with per-vehicle duty breakdown and totals
+- [x] **Batch Export** - Export results as CSV or Excel
+- [x] **Clearance Checklist** - Client and Broker checklists with required documents
+- [x] **Important Contacts** - Customs, Road Traffic, Port Authority phone numbers
+- [x] **Calculation History** - View and reload past calculations
+- [x] **Warning Flags** - Age-based inspection requirements, high mileage, permits
+
+### API Endpoints - Vehicle Module
+- `POST /api/vehicle/calculate` - Calculate single vehicle duties
+- `GET /api/vehicle/calculations` - List calculation history
+- `GET /api/vehicle/calculations/{id}` - Get specific calculation
+- `GET /api/vehicle/rates` - Get current duty rates
+- `GET /api/vehicle/template` - Download bulk upload template
+- `POST /api/vehicle/upload` - Bulk vehicle upload and calculation
+- `GET /api/vehicle/batches` - List batch history
+- `GET /api/vehicle/batches/{id}` - Get batch details
+- `GET /api/vehicle/batches/{id}/export` - Export batch results
+- `GET /api/vehicle/checklist` - Get clearance checklist
+
 ### Design
 - Dark mode with Electric Teal (#2DD4BF) accents
 - Chivo (headings), Inter (body), JetBrains Mono (code) fonts
@@ -152,6 +182,7 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 ### P0 (Critical) - Done
 - [x] Core classification flow
 - [x] B-CLASS Alcohol Calculator
+- [x] Vehicle Brokering Calculator
 
 ### P1 (High Priority)
 - [ ] PDF invoice extraction with AI (Gemini 2.5 Flash)
@@ -176,8 +207,8 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [ ] Real-time duty rate API integration
 
 ## Next Tasks
-1. Implement PDF extraction with AI (FileContentWithMimeType + Gemini)
-2. Add bulk upload support for multiple files
-3. Create admin dashboard for user management
-4. Add learning from user approvals (improve AI suggestions)
-5. Integrate real-time duty rate updates from Bahamas Customs
+1. Finalize NotationsPage.jsx UI (currently a scaffold)
+2. Add HS Library search link from classification item edit dialog
+3. Create downloadable Alcohol Calculation PDF guide
+4. Implement PDF extraction with AI (FileContentWithMimeType + Gemini)
+5. Create admin dashboard for user management
