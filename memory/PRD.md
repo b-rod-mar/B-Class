@@ -157,8 +157,10 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] **Duty Rate Tiers** - Electric/Hybrid (10-25%), Gasoline/Diesel (45-65%), Commercial (65-85%)
 - [x] **Engine Size Detection** - Automatic duty tier based on engine displacement (cc)
 - [x] **Value-Based Tiers** - Different rates for vehicles ≤$50k vs >$50k
-- [x] **Complete Breakdown** - Import Duty, Environmental Levy (1%), Stamp Duty (7%), VAT (10%), Processing Fee
-- [x] **Concessionary Rates** - Support for first-time owner, returning resident, disabled exemptions
+- [x] **Environmental Levy** - Flat $250 for new/standard, 20% for >10 years, $200 for antique, $5/tire
+- [x] **Processing Fee** - 1% of CIF (min $10, max $750)
+- [x] **Complete Breakdown** - CIF → Duty → Levy → Processing → Landed Cost → VAT (10% of LC)
+- [x] **Concessionary Rates** - First-time owner (20% reduction), Returning resident (15% reduction), Disabled (10% flat)
 - [x] **Vehicle Types** - Electric, Hybrid, Gasoline, Diesel, Commercial
 - [x] **HS Code Assignment** - Automatic HS code (8703.xx) based on vehicle type
 - [x] **Bulk Upload** - CSV/Excel upload for batch vehicle calculations
@@ -167,8 +169,36 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] **Batch Export** - Export results as CSV or Excel
 - [x] **Clearance Checklist** - Client and Broker checklists with required documents
 - [x] **Important Contacts** - Customs, Road Traffic, Port Authority phone numbers
-- [x] **Calculation History** - View and reload past calculations
-- [x] **Warning Flags** - Age-based inspection requirements, high mileage, permits
+- [x] **Calculation History** - View and reload past calculations with DELETE
+- [x] **Warning Flags** - Age-based inspection requirements, Ministry approval needed
+- [x] **Antique/Vintage Option** - Special $200 levy for classic cars
+
+### Hawksbill Creek Agreement (Jan 31, 2026)
+- [x] **CMA Reference Updated** - 4 entries on Hawksbill Creek Agreement added
+- [x] **Overview** - What it is, Grand Bahama Port Authority, Freeport establishment
+- [x] **Historical Background** - 1955 origins, Wallace Groves, 99-year concession
+- [x] **Duty & Tax Exemptions** - C14 form, Port Area duty-free imports
+- [x] **Implications for Brokers** - Licensee verification, transfer rules
+
+### Feedback System (Jan 31, 2026)
+- [x] **Share Feedback Button** - In sidebar user section
+- [x] **Feedback Dialog** - Name, email, type, subject, message
+- [x] **Feedback Types** - General, Bug Report, Feature Request, Question
+- [x] **Email Notification** - Forwards to gfp6ixhc@yourfeedback.anonaddy.me
+- [x] **Database Storage** - All feedback saved for review
+
+### Professional Disclaimer (Jan 31, 2026)
+- [x] **Disclaimer Banner** - Always visible at sidebar bottom
+- [x] **Full Legal Text** - Secondary support tool, not legal advice
+- [x] **User Responsibility** - Verify HS codes, final amounts by Customs
+- [x] **Official Contacts** - Bahamas Customs phone, email, website links
+
+### Delete Functionality (Jan 31, 2026)
+- [x] **Classification History** - Delete entire classification from dropdown
+- [x] **Classification Items** - Delete individual items from results table
+- [x] **Alcohol Calculations** - Delete from history list
+- [x] **Vehicle Calculations** - Delete from history list
+- [x] **Notations** - Already had delete functionality
 
 ### API Endpoints - Vehicle Module
 - `POST /api/vehicle/calculate` - Calculate single vehicle duties
