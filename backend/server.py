@@ -2641,6 +2641,7 @@ async def calculate_vehicle_duties(
         "model": request.model,
         "year": request.year,
         "vehicle_type": request.vehicle_type,
+        "body_style": request.body_style,
         "engine_size_cc": request.engine_size_cc,
         "engine_category": engine_category,
         "cif_value": round(request.cif_value, 2),
