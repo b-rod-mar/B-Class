@@ -3030,10 +3030,7 @@ class FeedbackRequest(BaseModel):
     feedback_type: str = "general"  # general, bug, feature, question
 
 @api_router.post("/feedback")
-async def submit_feedback(
-    feedback: FeedbackRequest,
-    user: Optional[dict] = None
-):
+async def submit_feedback(feedback: FeedbackRequest):
     """Submit user feedback - sends to configured email"""
     import smtplib
     from email.mime.text import MIMEText
@@ -3048,7 +3045,6 @@ async def submit_feedback(
         "subject": feedback.subject,
         "message": feedback.message,
         "feedback_type": feedback.feedback_type,
-        "user_id": user.get("id") if user else None,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
