@@ -2930,6 +2930,7 @@ async def upload_vehicle_batch(
                 "model": str(row['model']),
                 "year": year,
                 "vehicle_type": vehicle_type,
+                "body_style": str(row.get('body_style', '')) if 'body_style' in df.columns and pd.notna(row.get('body_style')) else None,
                 "engine_size_cc": engine_cc,
                 "engine_category": get_engine_category(engine_cc, vehicle_type),
                 "cif_value": round(cif_value, 2),
