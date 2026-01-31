@@ -134,6 +134,9 @@ export default function Layout() {
               </Button>
             </div>
           </div>
+          
+          {/* Disclaimer */}
+          <DisclaimerBanner />
         </div>
       </aside>
 
