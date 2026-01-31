@@ -183,10 +183,9 @@ export default function CountryCodesPage() {
                 <table className="w-full">
                   <thead className="sticky top-0 bg-card border-b border-border">
                     <tr className="text-xs text-muted-foreground uppercase tracking-wider">
-                      <th className="text-left py-3 px-4 w-20">Code</th>
-                      <th className="text-left py-3 px-4 w-20">Alpha-3</th>
+                      <th className="text-left py-3 px-4 w-24">Customs Code</th>
+                      <th className="text-left py-3 px-4 w-20">ISO Code</th>
                       <th className="text-left py-3 px-4">Country</th>
-                      <th className="text-left py-3 px-4 w-28">Calling Code</th>
                       <th className="text-left py-3 px-4">Trade Agreement</th>
                       <th className="text-left py-3 px-4">Notes</th>
                     </tr>
@@ -199,37 +198,19 @@ export default function CountryCodesPage() {
                             variant="ghost"
                             size="sm"
                             className="font-mono font-bold text-primary hover:bg-primary/10 h-8 px-2"
-                            onClick={() => copyCode(country.code)}
+                            onClick={() => copyCode(country.customs_code)}
                           >
-                            {copiedCode === country.code ? (
+                            {copiedCode === country.customs_code ? (
                               <Check className="h-4 w-4" />
                             ) : (
-                              country.code
+                              country.customs_code
                             )}
                           </Button>
                         </td>
                         <td className="py-3 px-4 font-mono text-sm text-muted-foreground">
-                          {country.alpha3}
+                          {country.code}
                         </td>
                         <td className="py-3 px-4 font-medium">{country.name}</td>
-                        <td className="py-3 px-4">
-                          {country.calling_code ? (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="font-mono text-sm hover:bg-primary/10 h-7 px-2"
-                              onClick={() => copyCode(country.calling_code)}
-                            >
-                              {copiedCode === country.calling_code ? (
-                                <Check className="h-3 w-3" />
-                              ) : (
-                                country.calling_code
-                              )}
-                            </Button>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
-                          )}
-                        </td>
                         <td className="py-3 px-4">
                           {country.trade_agreement ? (
                             <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
