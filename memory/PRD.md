@@ -131,6 +131,14 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] **Trade Agreements** - CARICOM member identification
 - [x] **Regional Groupings** - Caribbean, North America, Europe, Asia, Africa, etc.
 
+### Tariffs & Duties Module (Jan 31, 2026)
+- [x] **Overview Tab** - Key info cards (rate range, VAT, EPA), tariff structure, common rates
+- [x] **Sections Tab** - All 22 HS sections with chapters and descriptions
+- [x] **Excise Tab** - Alcohol, tobacco, petroleum excise duties
+- [x] **GRI Rules Tab** - 10 General Rules of Interpretation with examples
+- [x] **Exemptions Tab** - Chapter 98 duty exemptions by category
+- [x] **Bahamas 2023 Tariff Rates** - 1,584 codes imported with actual duty rates
+
 ### Design
 - Dark mode with Electric Teal (#2DD4BF) accents
 - Chivo (headings), Inter (body), JetBrains Mono (code) fonts
