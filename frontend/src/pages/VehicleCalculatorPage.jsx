@@ -888,16 +888,22 @@ export default function VehicleCalculatorPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="text-xs space-y-1 text-muted-foreground">
+                    <p className="font-medium text-foreground">Import Duty Rates:</p>
                     <p>• Electric/Hybrid (≤$50k): 10% | (&gt;$50k): 25%</p>
                     <p>• Gasoline/Diesel (&lt;1.5L): 45%</p>
                     <p>• Gasoline/Diesel (1.5-2.0L ≤$50k): 45% | (&gt;$50k): 65%</p>
                     <p>• Gasoline/Diesel (&gt;2.0L): 65%</p>
                     <p>• Commercial: 65-85%</p>
                     <Separator className="my-2" />
-                    <p>• Environmental Levy: {Math.round(rates.environmental_levy_rate * 100)}%</p>
-                    <p>• Stamp Duty: {Math.round(rates.stamp_duty_rate * 100)}%</p>
-                    <p>• VAT: {Math.round(rates.vat_rate * 100)}%</p>
-                    <p>• Processing Fee: ${rates.processing_fee}</p>
+                    <p className="font-medium text-foreground">Environmental Levy:</p>
+                    <p>• New/Standard: ${rates.environmental_levy?.new_vehicle || 250} flat</p>
+                    <p>• Over 10 years: {(rates.environmental_levy?.over_10_years_rate || 0.20) * 100}% of landed cost</p>
+                    <p>• Antique/Vintage: ${rates.environmental_levy?.antique || 200} flat</p>
+                    <p>• Used Tire Levy: ${rates.environmental_levy?.tire_levy || 5}/tire</p>
+                    <Separator className="my-2" />
+                    <p className="font-medium text-foreground">Other Fees:</p>
+                    <p>• Processing Fee: 1% of CIF (min ${rates.processing_fee?.min || 10}, max ${rates.processing_fee?.max || 750})</p>
+                    <p>• VAT: {Math.round(rates.vat_rate * 100)}% of Landed Cost</p>
                     <p className="pt-2 text-xs opacity-70">Last updated: {rates.last_updated}</p>
                   </CardContent>
                 </Card>
