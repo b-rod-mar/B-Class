@@ -965,11 +965,13 @@ export default function AlcoholCalculatorPage() {
                   {history.map((calc) => (
                     <div 
                       key={calc.id}
-                      className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => loadFromHistory(calc)}
+                      className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
                       data-testid={`history-item-${calc.id}`}
                     >
-                      <div>
+                      <div 
+                        className="flex-1 cursor-pointer"
+                        onClick={() => loadFromHistory(calc)}
+                      >
                         <p className="font-medium">{calc.product_name}</p>
                         <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
                           <span>{calc.alcohol_type}</span>
@@ -979,11 +981,30 @@ export default function AlcoholCalculatorPage() {
                           <span>{formatDate(calc.created_at)}</span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-mono font-bold text-primary">
-                          {formatCurrency(calc.total_landed_cost)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">Total</p>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p className="font-mono font-bold text-primary">
+                            {formatCurrency(calc.total_landed_cost)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Total</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteCalculation(calc.id);
+                          }}
+                          disabled={deleting === calc.id}
+                          data-testid={`delete-history-${calc.id}`}
+                        >
+                          {deleting === calc.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <X className="h-4 w-4" />
+                          )}
+                        </Button>
                       </div>
                     </div>
                   ))}
