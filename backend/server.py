@@ -190,9 +190,34 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="Invalid token")
 
 async def require_admin(user: dict = Depends(get_current_user)):
-    if user.get("role") != UserRole.ADMIN:
+    if user.get("role") not in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
+
+async def require_super_admin(user: dict = Depends(get_current_user)):
+    if user.get("role") != UserRole.SUPER_ADMIN:
+        raise HTTPException(status_code=403, detail="Super Admin access required")
+    return user
+
+async def require_admin_with_access(required_level: str):
+    """Factory function to check admin access level"""
+    async def checker(user: dict = Depends(get_current_user)):
+        if user.get("role") not in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        # Super admins always have full access
+        if user.get("role") == UserRole.SUPER_ADMIN:
+            return user
+        
+        access_level = user.get("admin_access_level", AdminAccessLevel.VIEW_ONLY)
+        
+        if required_level == "full" and access_level != AdminAccessLevel.FULL:
+            raise HTTPException(status_code=403, detail="Full admin access required")
+        elif required_level == "broadcast" and access_level not in [AdminAccessLevel.FULL, AdminAccessLevel.BROADCAST_ONLY]:
+            raise HTTPException(status_code=403, detail="Broadcast access required")
+        
+        return user
+    return checker
 
 # ============= AI CLASSIFICATION SERVICE =============
 async def classify_items_with_ai(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
