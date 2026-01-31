@@ -206,6 +206,7 @@ const initialFormState = {
   body_style: '',
   engine_size_cc: null,
   cif_value: 0,
+  cif_currency: 'USD',  // USD or BSD
   country_of_origin: '',
   is_new: true,
   fuel_type: '',
