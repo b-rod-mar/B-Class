@@ -1513,11 +1513,11 @@ async def log_admin_action(admin_id: str, action_type: str, description: str, me
 
 async def seed_super_admin():
     """Create initial super admin if not exists"""
-    existing = await db.users.find_one({"email": "@dmin1"})
+    existing = await db.users.find_one({"email": "admin1@classb-agent.local"})
     if not existing:
         admin_doc = {
             "id": str(uuid.uuid4()),
-            "email": "@dmin1",
+            "email": "admin1@classb-agent.local",
             "name": "System Administrator",
             "company": "System",
             "password": hash_password("bcl@ss_1"),
@@ -1531,7 +1531,7 @@ async def seed_super_admin():
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
         await db.users.insert_one(admin_doc)
-        logger.info("Super admin account created: @dmin1")
+        logger.info("Super admin account created: admin1@classb-agent.local")
         return True
     return False
 
