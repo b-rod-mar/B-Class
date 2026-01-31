@@ -39,7 +39,7 @@ export default function LoginPage() {
               <Anchor className="h-8 w-8 text-primary" />
             </div>
             <CardTitle className="text-2xl font-bold font-['Chivo']">
-              TariffExpert
+              Class-B HS Code Agent
             </CardTitle>
             <CardDescription className="text-muted-foreground">
               Bahamas HS Code Classification System

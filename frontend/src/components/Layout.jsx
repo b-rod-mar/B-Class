@@ -48,7 +48,7 @@ export default function Layout() {
       <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Anchor className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg font-['Chivo']">TariffExpert</span>
+          <span className="font-bold text-lg font-['Chivo']">Class-B Agent</span>
         </div>
         <Button 
           variant="ghost" 
@@ -75,7 +75,7 @@ export default function Layout() {
                 <Anchor className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="font-bold text-lg font-['Chivo'] tracking-tight">TariffExpert</h1>
+                <h1 className="font-bold text-lg font-['Chivo'] tracking-tight">Class-B Agent</h1>
                 <p className="text-xs text-muted-foreground">Bahamas HS Classification</p>
               </div>
             </div>
