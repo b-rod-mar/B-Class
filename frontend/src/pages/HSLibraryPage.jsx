@@ -215,30 +215,45 @@ export default function HSLibraryPage() {
             HS Code Library
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage your Bahamas-specific HS code database
+            Manage your Bahamas-specific HS code database ({hsCodes.length} codes)
           </p>
         </div>
-        <div className="flex gap-3">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search codes..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-              data-testid="search-hs-input"
-            />
-          </div>
-          <Button 
-            onClick={openNew}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-            data-testid="add-hs-btn"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Code
-          </Button>
-        </div>
       </div>
+
+      <Tabs defaultValue="browse" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+          <TabsTrigger value="browse" data-testid="tab-browse">
+            <BookOpen className="h-4 w-4 mr-2" />
+            Browse Library
+          </TabsTrigger>
+          <TabsTrigger value="import" data-testid="tab-import">
+            <Upload className="h-4 w-4 mr-2" />
+            Import Codes
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Browse Tab */}
+        <TabsContent value="browse">
+          <div className="flex gap-3 mb-6">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search codes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+                data-testid="search-hs-input"
+              />
+            </div>
+            <Button 
+              onClick={openNew}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              data-testid="add-hs-btn"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Code
+            </Button>
+          </div>
 
       {filteredCodes.length === 0 ? (
         <Card>
