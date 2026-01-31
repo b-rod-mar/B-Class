@@ -798,7 +798,7 @@ export default function VehicleCalculatorPage() {
                         Popular Countries
                       </div>
                       {['Japan', 'United States', 'Germany', 'South Korea', 'China', 'Mexico', 'Canada', 'United Kingdom'].map((country) => (
-                        <SelectItem key={`popular-${country}`} value={country}>
+                        <SelectItem key={country} value={country}>
                           {country}
                         </SelectItem>
                       ))}
@@ -806,8 +806,14 @@ export default function VehicleCalculatorPage() {
                       <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
                         All Countries (A-Z)
                       </div>
-                      {COUNTRIES.map((country) => (
+                      {COUNTRIES.filter(c => !['Japan', 'United States', 'Germany', 'South Korea', 'China', 'Mexico', 'Canada', 'United Kingdom'].includes(c)).map((country) => (
                         <SelectItem key={country} value={country}>
+                          {country}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                           {country}
                         </SelectItem>
                       ))}
