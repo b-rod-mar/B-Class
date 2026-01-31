@@ -346,11 +346,11 @@ export default function ClassificationResultPage() {
                       </td>
                       <td>
                         <Badge 
-                          variant={item.review_status === 'user_updated' ? 'outline' : 'default'}
+                          variant="outline"
                           className={cn(
                             "text-xs",
                             item.review_status === 'user_updated' 
-                              ? 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+                              ? 'status-user-updated'
                               : getStatusColor(item.review_status)
                           )}>
                           {item.review_status === 'user_updated' ? 'User Updated' : getStatusLabel(item.review_status)}
