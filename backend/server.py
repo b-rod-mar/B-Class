@@ -1563,6 +1563,7 @@ class SystemSettings(BaseModel):
     terms_of_use: Optional[str] = None
     disclaimer_text: Optional[str] = None
     weekly_email_enabled: Optional[bool] = None
+    classi_knowledge: Optional[str] = None  # Additional knowledge for Classi AI chatbot
 
 # Super Admin User Management
 @api_router.post("/admin/users/create")
