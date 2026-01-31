@@ -227,14 +227,14 @@ CMA_REGULATIONS = [
         "keywords": ["personal effects", "returning resident", "tourist allowance", "duty-free allowance", "6 months"]
     },
     
-    # Part VI - ASYCUDA and Procedures
+    # Part VI - Electronic Single Window and Procedures
     {
         "category": "Procedures",
         "section": "Part VI",
-        "title": "ASYCUDA World System",
+        "title": "Electronic Single Window System",
         "reference": "Section 80-85",
-        "content": "The Bahamas uses ASYCUDA World (Automated System for Customs Data) for processing customs declarations. All commercial importers must register for ASYCUDA access. Electronic declarations are mandatory for commercial shipments. The system calculates duties automatically based on HS code, value, and applicable rates. Payment can be made electronically through approved banks.",
-        "keywords": ["ASYCUDA", "electronic", "declaration", "registration", "automated", "payment"]
+        "content": "The Bahamas uses the Electronic Single Window (ESW) for processing customs declarations. All commercial importers must register for ESW access. Electronic declarations are mandatory for commercial shipments. The system calculates duties automatically based on HS code, value, and applicable rates. Payment can be made electronically through approved banks.",
+        "keywords": ["Electronic Single Window", "ESW", "electronic", "declaration", "registration", "automated", "payment"]
     },
     {
         "category": "Procedures",
