@@ -10,6 +10,9 @@ import HistoryPage from './pages/HistoryPage';
 import HSLibraryPage from './pages/HSLibraryPage';
 import AlcoholCalculatorPage from './pages/AlcoholCalculatorPage';
 import CMASearchPage from './pages/CMASearchPage';
+import CustomsFormsPage from './pages/CustomsFormsPage';
+import CountryCodesPage from './pages/CountryCodesPage';
+import NotationsPage from './pages/NotationsPage';
 import Layout from './components/Layout';
 import './App.css';
 
@@ -63,6 +66,9 @@ function AppRoutes() {
         <Route path="hs-library" element={<HSLibraryPage />} />
         <Route path="alcohol-calculator" element={<AlcoholCalculatorPage />} />
         <Route path="cma-guide" element={<CMASearchPage />} />
+        <Route path="customs-forms" element={<CustomsFormsPage />} />
+        <Route path="country-codes" element={<CountryCodesPage />} />
+        <Route path="notations" element={<NotationsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

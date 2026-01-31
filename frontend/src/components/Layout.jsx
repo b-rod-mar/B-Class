@@ -11,7 +11,10 @@ import {
   ChevronRight,
   Anchor,
   Wine,
-  Scale
+  Scale,
+  FileText,
+  Globe,
+  StickyNote
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useState } from 'react';
@@ -24,6 +27,9 @@ const navItems = [
   { path: '/history', label: 'Classification History', icon: History },
   { path: '/hs-library', label: 'HS Code Library', icon: BookOpen },
   { path: '/cma-guide', label: 'CMA Reference', icon: Scale },
+  { path: '/customs-forms', label: 'Customs Forms', icon: FileText },
+  { path: '/country-codes', label: 'Country Codes', icon: Globe },
+  { path: '/notations', label: 'My Notations', icon: StickyNote },
 ];
 
 export default function Layout() {
