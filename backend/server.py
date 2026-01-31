@@ -3353,6 +3353,11 @@ async def classi_chat(request: ClassiChatRequest, user: dict = Depends(get_curre
         country_codes = await db.country_codes.find({}, {"_id": 0}).to_list(50)
         country_context = "\n".join([f"- {c.get('code', '')}: {c.get('name', '')}" for c in country_codes[:30]]) if country_codes else ""
         
+        # Fetch admin-provided additional knowledge
+        system_settings = await db.system_settings.find_one({"type": "global"}, {"_id": 0})
+        admin_knowledge = system_settings.get("classi_knowledge", "") if system_settings else ""
+        admin_knowledge_section = f"\n\n### Additional Administrator-Provided Information:\n{admin_knowledge}" if admin_knowledge else ""
+        
         chat = LlmChat(
             api_key=api_key,
             session_id=f"classi-{user['id']}-{uuid.uuid4()}",
@@ -3373,6 +3378,7 @@ Your role is to help users with:
 
 ### Country Codes:
 {country_context}
+{admin_knowledge_section}
 
 Guidelines:
 - Be helpful, friendly, and professional
