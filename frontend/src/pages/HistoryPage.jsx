@@ -12,7 +12,9 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Calendar
+  Calendar,
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { formatDate } from '../lib/utils';
 import { toast } from 'sonner';
@@ -22,6 +24,7 @@ export default function HistoryPage() {
   const [classifications, setClassifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleting, setDeleting] = useState(null);
 
   useEffect(() => {
     fetchClassifications();
@@ -35,6 +38,26 @@ export default function HistoryPage() {
       toast.error('Failed to load history');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (classificationId, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!window.confirm('Are you sure you want to delete this classification? This action cannot be undone.')) {
+      return;
+    }
+    
+    setDeleting(classificationId);
+    try {
+      await api.delete(`/classifications/${classificationId}`);
+      toast.success('Classification deleted');
+      fetchClassifications();
+    } catch (error) {
+      toast.error('Failed to delete classification');
+    } finally {
+      setDeleting(null);
     }
   };
 
