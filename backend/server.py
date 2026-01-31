@@ -1846,7 +1846,8 @@ async def admin_get_settings(admin: dict = Depends(require_admin)):
             "type": "global",
             "terms_of_use": "",
             "disclaimer_text": "",
-            "weekly_email_enabled": True
+            "weekly_email_enabled": True,
+            "classi_knowledge": ""
         }
     return settings
 
