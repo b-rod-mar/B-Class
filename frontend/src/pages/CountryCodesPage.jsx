@@ -118,7 +118,7 @@ export default function CountryCodesPage() {
           Country Codes
         </h1>
         <p className="text-muted-foreground mt-1">
-          ISO country codes for customs declarations and certificates of origin
+          Official Bahamas Customs numeric country codes for declarations and certificates of origin
         </p>
       </div>
 
