@@ -16,9 +16,19 @@ import {
   Globe,
   StickyNote,
   Calculator,
-  Car
+  Car,
+  User,
+  Settings,
+  ChevronDown
 } from 'lucide-react';
 import { Button } from './ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 import { useState } from 'react';
 import { cn } from '../lib/utils';
 import ClassiChat from './ClassiChat';
