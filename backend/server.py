@@ -53,6 +53,7 @@ class ReviewStatus(str, Enum):
     NEEDS_REVIEW = "needs_review"
     REVIEWED = "reviewed"
     REJECTED = "rejected"
+    USER_UPDATED = "user_updated"
 
 class UserRole(str, Enum):
     USER = "user"
