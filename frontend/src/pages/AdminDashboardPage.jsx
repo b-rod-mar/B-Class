@@ -367,7 +367,7 @@ export default function AdminDashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center justify-between gap-4 mb-4">
                 <div className="relative flex-1 max-w-sm">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -377,6 +377,26 @@ export default function AdminDashboardPage() {
                     className="pl-9"
                     data-testid="search-users-input"
                   />
+                </div>
+                {/* Actions Legend */}
+                <div className="flex items-center gap-4 text-xs text-muted-foreground border border-border/50 rounded-lg px-3 py-2 bg-muted/30">
+                  <span className="font-medium text-foreground">Actions:</span>
+                  <div className="flex items-center gap-1.5">
+                    <Edit2 className="h-3.5 w-3.5" />
+                    <span>Edit</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-amber-500">
+                    <UserX className="h-3.5 w-3.5" />
+                    <span>Suspend</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-emerald-500">
+                    <UserCheck className="h-3.5 w-3.5" />
+                    <span>Reactivate</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-rose-500">
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Delete</span>
+                  </div>
                 </div>
               </div>
               <div className="rounded-md border max-h-[400px] overflow-auto">
