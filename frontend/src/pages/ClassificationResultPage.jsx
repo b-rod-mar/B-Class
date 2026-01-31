@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -17,6 +17,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
 import { ScrollArea } from '../components/ui/scroll-area';
@@ -33,7 +34,9 @@ import {
   Shield,
   Info,
   Loader2,
-  BookOpen
+  BookOpen,
+  Trash2,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn, formatDate, getConfidenceColor, getConfidenceLabel, getStatusColor, getStatusLabel, formatCurrency } from '../lib/utils';
@@ -41,12 +44,15 @@ import HSCodeAutoSuggest from '../components/HSCodeAutoSuggest';
 
 export default function ClassificationResultPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { api } = useAuth();
   const [classification, setClassification] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editingItem, setEditingItem] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deletingItem, setDeletingItem] = useState(null);
 
   useEffect(() => {
     fetchClassification();
