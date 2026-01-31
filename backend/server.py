@@ -2353,6 +2353,7 @@ class VehicleCalculationRequest(BaseModel):
     model: str
     year: int
     vehicle_type: VehicleType
+    body_style: Optional[str] = None  # sedan, suv, pickup, etc.
     engine_size_cc: Optional[int] = None  # Engine displacement in cc (not applicable for electric)
     cif_value: float  # Cost, Insurance, Freight value in USD
     country_of_origin: str
