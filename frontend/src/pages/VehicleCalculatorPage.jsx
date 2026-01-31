@@ -1489,8 +1489,33 @@ export default function VehicleCalculatorPage() {
       {/* History Panel */}
       {showHistory && (
         <Card className="animate-fade-in">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="font-['Chivo']">Calculation History</CardTitle>
+            {history.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    const response = await api.get('/vehicle/history/export', { responseType: 'blob' });
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `vehicle_history_${new Date().toISOString().split('T')[0]}.xlsx`);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    toast.success('History exported!');
+                  } catch (error) {
+                    toast.error('Export failed');
+                  }
+                }}
+                data-testid="export-vehicle-history-btn"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export All (Excel)
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {history.length === 0 ? (
