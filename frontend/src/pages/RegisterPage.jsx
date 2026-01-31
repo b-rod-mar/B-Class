@@ -6,7 +6,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { toast } from 'sonner';
-import { Anchor, Loader2, ArrowRight } from 'lucide-react';
+import { Anchor, Loader2, ArrowRight, AlertTriangle, Shield } from 'lucide-react';
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -15,15 +15,32 @@ export default function RegisterPage() {
     name: '',
     email: '',
     password: '',
-    company: ''
+    company: '',
+    secret_code: '',
+    confirm_secret_code: ''
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate secret code
+    if (!formData.secret_code || formData.secret_code.length < 4 || formData.secret_code.length > 6) {
+      toast.error('Account Secret Code must be 4-6 digits');
+      return;
+    }
+    if (!/^\d+$/.test(formData.secret_code)) {
+      toast.error('Account Secret Code must contain only numbers');
+      return;
+    }
+    if (formData.secret_code !== formData.confirm_secret_code) {
+      toast.error('Secret codes do not match');
+      return;
+    }
+    
     setLoading(true);
     
     try {
-      await register(formData.name, formData.email, formData.password, formData.company);
+      await register(formData.name, formData.email, formData.password, formData.company, formData.secret_code);
       toast.success('Account created successfully!');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Registration failed');
@@ -101,6 +118,64 @@ export default function RegisterPage() {
                   className="bg-background/50"
                 />
               </div>
+              
+              {/* Account Secret Code Section */}
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg space-y-3">
+                <div className="flex items-start gap-2">
+                  <Shield className="h-4 w-4 text-amber-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-400">Account Secret Code</p>
+                    <p className="text-xs text-amber-400/70">Required for account recovery & security changes</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="secret_code" className="text-xs">Secret Code (4-6 digits)</Label>
+                    <Input
+                      id="secret_code"
+                      type="password"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      placeholder="••••••"
+                      value={formData.secret_code}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setFormData({ ...formData, secret_code: val });
+                      }}
+                      required
+                      data-testid="register-secret-code-input"
+                      className="bg-background/50 font-mono tracking-widest"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="confirm_secret_code" className="text-xs">Confirm Code</Label>
+                    <Input
+                      id="confirm_secret_code"
+                      type="password"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      placeholder="••••••"
+                      value={formData.confirm_secret_code}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setFormData({ ...formData, confirm_secret_code: val });
+                      }}
+                      required
+                      data-testid="register-confirm-secret-input"
+                      className="bg-background/50 font-mono tracking-widest"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 pt-1">
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-[10px] text-amber-400/80 leading-tight">
+                    Store this code securely. It's required to update your account information or recover access. We cannot retrieve it if lost.
+                  </p>
+                </div>
+              </div>
+              
               <Button 
                 type="submit" 
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 glow-teal"
