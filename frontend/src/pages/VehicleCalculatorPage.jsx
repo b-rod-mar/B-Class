@@ -744,17 +744,35 @@ export default function VehicleCalculatorPage() {
                 {/* Country of Origin */}
                 <div className="space-y-2">
                   <Label htmlFor="country">Country of Origin *</Label>
-                  <div className="relative">
-                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="country"
-                      placeholder="e.g., Japan, USA, Germany"
-                      value={formData.country_of_origin}
-                      onChange={(e) => setFormData({ ...formData, country_of_origin: e.target.value })}
-                      className="pl-9"
-                      data-testid="country-input"
-                    />
-                  </div>
+                  <Select 
+                    value={formData.country_of_origin} 
+                    onValueChange={(value) => setFormData({ ...formData, country_of_origin: value })}
+                  >
+                    <SelectTrigger data-testid="country-select">
+                      <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {/* Popular countries at top */}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
+                        Popular Countries
+                      </div>
+                      {['Japan', 'United States', 'Germany', 'South Korea', 'China', 'Mexico', 'Canada', 'United Kingdom'].map((country) => (
+                        <SelectItem key={`popular-${country}`} value={country}>
+                          {country}
+                        </SelectItem>
+                      ))}
+                      <Separator className="my-1" />
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
+                        All Countries (A-Z)
+                      </div>
+                      {COUNTRIES.map((country) => (
+                        <SelectItem key={country} value={country}>
+                          {country}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Mileage (for used) */}
