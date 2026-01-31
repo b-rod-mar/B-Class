@@ -18,74 +18,67 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 **User's preferred language**: English
 
 **what currently exists?**
-A comprehensive full-stack application, TariffExpert, with a FastAPI backend and React frontend.
-- **Core Features:** JWT authentication, a dashboard, and AI-powered HS code classification for single and bulk uploads.
-- **Calculators:** A detailed Alcohol Calculator with single/bulk entry (updated with official Bahamas formulas) and a new, yet-to-be-built Vehicle Brokering Calculator.
-- **Reference Modules:** Searchable pages for a vastly expanded HS Library (now containing over 6,900 codes from global and Bahamas-specific sources), CMA Reference Guide, Customs Forms, Country Codes (with official Bahamas numeric codes), and a new Tariffs & Duties guide.
-- **Interactive Tools:**
-    - Classi: An AI-powered chatbot assistant for user help, integrated as a floating widget.
-    - HS Code Auto-Suggest: Provides real-time HS code suggestions on the classification results page.
-- **Branding:** The application has been rebranded to Class-B HS Code Agent.
-- **Data Management:** The system has been updated to use Electronic Single Window instead of ASYCUDA. Several Python scripts exist to seed and import data from various sources.
+A mature full-stack application, TariffExpert, with a FastAPI backend and React frontend.
+- **Core Features:** JWT authentication, AI-powered HS classification, and various reference guides.
+- **Calculators:** Detailed Alcohol and Vehicle Calculators with single entry, history, bulk uploads, Excel exports, and downloadable PDF guides.
+- **User Account System:** A comprehensive user profile and security system has been implemented. Users can register with an Account Secret Code, manage their profile information, and reset their password using either an email link or the secret code for instant recovery.
+- **Admin System (Backend):** The backend infrastructure for a multi-level Super Administrator system is complete. It includes granular roles (Super Admin, Full Access, View/Broadcast Only), a full suite of API endpoints for managing users (create, edit, deactivate) and system settings (notifications, global content), and seeds an initial super admin account on startup.
+- **UI/UX:** The application features a refined UI, including a finalized Notations page, legends for icons, and searchable dropdowns. The main layout includes a user profile dropdown menu.
 
 **Last working item**: 
-    - Last item agent was working: The user provided an extremely detailed specification for a new, major feature: a Customs Brokering a Vehicle module. This includes a step-by-step guide, duty/VAT/levy breakdowns, concessionary rates logic, a feature list for a calculator, a bulk upload template, and a clearance checklist. The agent's last action was acknowledging this request.
-    - Status: NOT STARTED
-    - Agent Testing Done: N
+    - Last item agent was working: The agent was implementing a comprehensive Super Administrator feature. The backend logic, including new user roles, extensive admin API endpoints, and seeding the initial super admin account, is complete and tested. The agent was starting the frontend implementation, had just created the placeholder file for the , and was about to create the  for the mandatory first-time admin login flow.
+    - Status: IN PROGRESS
+    - Agent Testing Done: Y (Backend endpoints tested via curl)
     - Which testing method agent to use? both
     - User Testing Done: N
 
 **All Pending/In progress Issue list**: 
-  There are no outstanding bugs. The primary focus is on new feature development.
+  - No pending issues.
 
 **In progress Task List**: 
-  Task 1: Implement the Vehicle Brokering Module (P0)
+  Task 1:  Complete the Super Administrator Frontend UI (P0)
 
  Task Detail:
   - Task 1: 
-     - Where to resume: This is a new task. The implementation should follow the user's detailed specifications provided in the last message. The plan should be to build it in three layers as requested:
-        1.  **Vehicle Calculator:** Create a new frontend page and backend endpoint for calculating the total landed cost of a single vehicle. This involves a new UI with inputs for VIN, make, model, year, engine size, value, etc., and backend logic to handle HS code suggestion, duty tier detection, and risk warnings.
-        2.  **Bulk Upload:** Implement a feature to upload an Excel/CSV file (based on the provided template) to calculate duties for multiple vehicles at once.
-        3.  **Clearance Checklist:** Create a downloadable PDF or a new page displaying the client and broker checklists for vehicle clearance.
-     - What will be achieved with this? This will add a major new vertical to the application, addressing a significant pain point for vehicle importers in The Bahamas.
-     - Status:  NOT STARTED
+     - Where to resume: 
+        1. Create  to handle the mandatory password change and secret code creation for a first-time admin login.
+        2. Update  and  to handle the  flag from the login API response, redirecting the admin user to this new setup page.
+        3. Build out the  with UI components (tabs, tables, forms) for User Management, System Management (content, tariffs), and Broadcast Notifications.
+        4. Connect the frontend components to the corresponding backend admin API endpoints.
+     - What will be achieved with this? A fully functional admin dashboard allowing the Super Admin to manage users, system data, and communicate with all users via broadcast notifications, as per the user's detailed requirements.
+     - Status:  IN PROGRESS
      - Should Test frontend/backend/both after fix? both
-     - Blocked on something: None.
+     - Blocked on something: None
 
 **Upcoming and Future Tasks**
     Upcoming Tasks:
-    - **Complete Original Feature Set (P2):**
-        - Finalize the UI for the . The backend and route exist, but the UI is a scaffold.
-        - On the , add a link/button within the item editing dialog that allows users to search the HS library for a code.
-    - **Add Downloadable PDF for Alcohol Calculation (P2):** The user requested a simple, downloadable PDF to help users understand the alcohol duty calculation.
-    - **Enhance Classi (P2):** The user suggested enabling Classi to perform actions, such as classifying an item directly from the chat.
+    - **Enhance Classi (P2):** Enable the Classi AI chatbot to perform actions, such as classifying an item directly from the chat interface.
+    - **Add Manual Entry / AI Invoice Extraction (P2):** Add a Manual Entry tab to calculators and explore AI-powered data extraction from uploaded invoices.
+    
     Future Tasks:
     - Add a duty calculator integration directly within the HS library lookup.
     - Allow line-level editing in the bulk classification results view.
     - Implement a comparison view for re-classifications.
     - Add automatic regulatory alerts when Bahamas Customs updates duty rates.
-    - Implement scenario comparison for alcohol calculations (e.g., different quantities).
+    - **Refactor  (P0 - Technical Debt):** Propose and execute the refactoring of the monolithic  file into separate, maintainable FastAPI routers (e.g., , , ).
 
 **Completed work in this session**
-- **App Error Review:** Fixed a critical parsing error in  that was preventing the page from rendering. Cleaned up multiple lint warnings across the frontend.
-- **Classi Chatbot & Auto-Suggest:**
-    - Implemented Class-B HS Code Agent branding across the app.
-    - Created Classi, an AI help desk chatbot with a Bahamian flag avatar and a floating widget UI ().
-    - Implemented an HS Code auto-suggest feature for the classification editing dialog ().
-- **Data & Terminology Updates:**
-    - Replaced all references to ASYCUDA with Electronic Single Window.
-    - Updated the Customs Forms list in  based on a user-provided PDF.
-    - Replaced phone calling codes with official Bahamas Customs numeric codes in the Country Codes module, seeding 241 countries from a user-provided PDF.
-- **HS Library Expansion:**
-    - Imported a global 6-digit HS code dataset (~6,900 codes) using a new script ().
-    - Imported the official Bahamas 2023 Tariff Schedule (~1,500 codes with duty rates) using a new script ().
-- **New Tariffs & Duties Module:** Created a new page () to display tariff information, excise duty rates, and GRI rules extracted from user documents.
-- **Alcohol Calculator Enhancements:**
-    - Updated the backend calculation logic in  to use official Bahamas formulas (Proof Gallons for spirits, Imperial Gallons for beer/wine).
-    - Enhanced the frontend UI () with more ABV presets and a clearer custom input.
+- **User Profile & Security:** Implemented a full user profile management system with an Account Secret Code for enhanced security on password resets and profile edits.
+- **Forgot Password Flow:** Created a dual-option password recovery system (email link or instant recovery with secret code).
+- **Admin System Backend:** Built the complete backend for a Super Administrator role with granular permissions and comprehensive user/system management endpoints.
+- **Calculator Enhancements:**
+    - Added downloadable PDF guides for both Alcohol and Vehicle calculators.
+    - Added a searchable country dropdown to the Vehicle Calculator.
+    - Added a USD/BSD currency selector for the CIF value in the Vehicle Calculator.
+    - Fixed an environmental levy warning text bug in the Vehicle Calculator.
+- **Data Export:** Added Export All History to Excel functionality for both the Alcohol and Vehicle calculators.
+- **UI Finalization:**
+    - Finalized the UI for the  with stats cards and better layout.
+    - Improved the classification item edit dialog with a better search link and added a user_updated status with yellow highlighting for edited items.
+- **Core Feature Verification:** Tested and verified the  feature in the vehicle calculator, added the HS Code Library legend, and updated bulk upload templates.
 
 **Earlier issues found/mentioned but not fixed**
-   - **Pydantic Deserialization Issue:** During debugging, an issue arose where a new field () added to the  collection in MongoDB was not appearing in the API response. The agent suspected a Pydantic model issue or a caching problem. This was not fully resolved because the user pivoted to a different data structure, making the original field obsolete. However, the root cause (potentially related to response models or data caching) could reappear if new fields are added to other models.
+   - **Pydantic Deserialization Issue:** A potential underlying issue where new fields added to MongoDB collections might not appear in API responses due to Pydantic model caching or misconfiguration. This was not resolved and could resurface as more features are added.
 
 **Known issue recurrence from previous fork**
   - None.
@@ -95,92 +88,86 @@ A comprehensive full-stack application, TariffExpert, with a FastAPI backend and
 
 **Key Technical Concepts**
 - **Backend:** FastAPI, Python, MongoDB (via ), Pydantic, JWT.
-- **Frontend:** React, , , Tailwind CSS, Shadcn UI.
-- **AI:** OpenAI GPT-5.2 (via ) for HS classification and the Classi chatbot.
-- **Architecture:** Monolithic FastAPI backend with a separate React SPA frontend.
+- **Frontend:** React, , , Tailwind CSS, Shadcn UI, .
+- **AI:** OpenAI GPT-5.2 for classification and chatbot.
+- **PDF Generation:**  library.
+- **Background Jobs:**  for scheduled tasks.
 
 **key DB schema**
-- **users:** {email, name, password_hash, role}
-- **hs_codes:** {code, description, chapter, section, duty_rate, created_by, created_at, ...} - *Significantly expanded with new data.*
-- **customs_forms:** {form_number, title, description, category} - *Updated with a complete list.*
-- **country_codes:** {code, customs_code, name, region, ...} - *Schema changed to use  instead of .*
-- **notations:** {user_id, label, content, created_at}
+  - **users:** {...,  (hashed),  (active/inactive),  (user/super_admin/etc.), , }
+  - **notifications:** {uid=0(root) gid=0(root) groups=0(root), , , , , }
+  - **password_reset_tokens:** {, , }
 
 **changes in tech stack**
-- None.
+  - Added  and  to backend dependencies.
 
 **All files of reference**
-- : The single, monolithic file for all backend logic. **CRITICAL file for all backend changes.**
-- : Script for seeding data. Was heavily modified to include new customs forms and country codes.
-- : **New file** for importing the global HS code dataset.
-- : **New file** for parsing and importing the Bahamas 2023 Tariff PDF.
-- : Updated with new UI for custom ABV.
-- : Updated to display customs codes.
-- : **New file** for the Tariffs & Duties module.
-- : **New file** for the chatbot component.
-- : **New file** for the HS code auto-suggest input.
-- : Modified to add new navigation links and the ClassiChat component.
-- : Modified to add the new route for the Tariffs page.
-- : The product requirements document, updated with completed work.
+- : **CRITICAL FILE.** All backend logic for user profiles, password reset, admin system, and PDF/Excel exports was added here.
+- : **NEW FILE.** Contains the user profile management UI.
+- , : **NEW FILES.** For the password recovery flow.
+- : **NEW FILE.** Placeholder for the admin UI.
+- : Modified to include Account Secret Code.
+- , : Modified to add PDF guides and history exports.
+- : Modified to handle new registration/login fields.
+- : Modified to add the user profile dropdown menu.
+- : Modified to add new routes for profile and password reset.
 
 **Areas that need refactoring**: 
-- ** is critically overgrown.** It now handles auth, classification, alcohol calcs, CMA, HS codes, customs forms, country codes, notations, the Classi chatbot, and HS auto-suggest. It urgently needs to be broken down into separate routers (e.g., , , ) to maintain scalability and prevent conflicts.
+- **:** The file has become critically large and complex. It now contains logic for auth, all calculators, data exports, user profiles, and a comprehensive admin system. It must be broken down into separate FastAPI routers to ensure future maintainability and reduce risk. This should be proposed as a P0 technical debt task.
 
 **key api endpoints**
-- 
-- 
-- 
-- 
-- 
-- 
-- **New:** 
-- **New:** 
+-  (POST)
+-  (POST)
+-  (GET, PUT)
+-  (GET, POST)
+-  (GET, PUT, DELETE)
+-  (GET, POST)
+-  (PUT, DELETE)
+-  (GET, PUT)
+-  (GET)
+-  (GET)
+-  (GET)
+-  (GET)
 
 **Critical Info for New Agent**
-- The user's latest request for the Vehicle Brokering module is the highest priority (P0). It is a large, well-defined feature that should be the immediate focus.
-- The  file is a monolith. Be extremely careful when adding new endpoints or logic. The recommendation to refactor it into smaller routers should be proposed to the user soon.
-- The application now has multiple data import scripts (, , ). These are essential for populating the database and may need to be run after backend changes or to add new data.
-- The user frequently provides PDF documents with new data or requirements. Be prepared to use extraction tools to parse these documents.
+- The immediate priority is to build the frontend for the Admin system. Start by creating  to handle the first-time login flow for the seeded super admin, then build the main .
+- The user is providing large, multi-part feature requests. Continue to break them down and implement them systematically.
+- Proposing the refactoring of  is now urgent. This should be raised to the user as the next major task after the admin UI is complete to improve the long-term health of the application.
 
 **documents and test reports created in this job**
--  (updated)
 - 
-- 
-- 
-- 
-- 
-- 
+-  (heavily updated)
 
 **Last 10 User Messages and any pending HUMAN messages** 
-1. **Request:** Build a comprehensive vehicle customs brokering module (calculator, bulk upload, checklist). **Status: Pending (Next Task).**
-2. **Request:** Update alcohol calculator logic and add downloadable guide based on 5 provided PDFs. **Status: Partially Complete (logic updated, PDF guide pending).**
-3. **Request:** Add a module for Bahamian tariffs/excise rates from 3 provided PDFs. **Status: Completed.**
-4. **Request:** Proceed with tariff page and update HS library from a provided 2023 Tariff Schedule PDF. **Status: Completed.**
-5. **Request:** Add custom ABV option to alcohol calculator and import HS codes from a PDF. **Status: Completed (ABV), Incomplete (PDF was for US, not Bahamas).**
-6. **Request:** Change ASYCUDA to Electronic Single Window, add country calling codes, and update customs forms from a PDF. **Status: Completed (but pivoted from calling codes to customs codes).**
-7. **Request:** Update with official customs country codes from a new PDF. **Status: Completed.**
-8. **Request:** Another request for the customs country codes PDF. **Status: Completed.**
-9. **Confirmation:** User approved the plan to implement Classi chatbot and HS auto-suggest. **Status: Completed.**
-10. **Request:** Add Class-B branding, a chatbot named Classi, and an HS code auto-suggest feature. **Status: Completed.**
+1. **Request:** Implement a comprehensive Super Administrator system. **Status: In Progress** (Backend complete, frontend started).
+2. **Request:** Add Excel export feature to Alcohol and Vehicle history pages. **Status: Completed.**
+3. **Request:** Implement User Profile section and Account Secret Code for security. **Status: Completed.**
+4. **Request:** Finalize NotationsPage UI and enhance classification edit dialog. **Status: Completed.**
+5. **Request:** Fix country dropdown duplication bug. **Status: Completed.**
+6. **Request:** Add Vehicle Calculation Guide PDF and a USD/BSD currency selector. **Status: Completed.**
+7. **Request:** Add downloadable PDF for Alcohol guide and a country dropdown for Vehicle calculator. **Status: Completed.**
+8. **Request:** Fix Environmental Levy text to 11 years or older, add forgot password, and create weekly account log. **Status: Completed.**
+9. **Confirmation:** User approved plan to proceed. **Status: Completed.**
+10. **Initial Plan:** Agent proposed plan to implement vehicle body style, MOF button, HS legend, and update templates. **Status: Completed.**
 
 **Project Health Check:**
-- **Working:** All core features including auth, classification, alcohol calculator (updated logic), HS Library (expanded), CMA Guide, Customs Forms, Country Codes, Tariffs & Duties module, and the Classi chatbot.
-- **Broken/Incomplete:** The new Vehicle Brokering module is not yet started. The Notations page is still a scaffold. The downloadable alcohol calculation guide has not been created.
+- **Working:** All implemented features, including user profiles, security enhancements, data exports, and PDF guides are functional. The backend for the admin system is complete and tested.
+- **Broken/Incomplete:** The Super Administrator system has no frontend UI. An admin user logging in currently has no interface to perform their duties.
 
 **3rd Party Integrations**
 - **OpenAI GPT-5.2:** Used for HS code classification and the Classi chatbot. Uses the Emergent LLM Key.
+- **reportlab:** Used for server-side PDF generation.
+- **apscheduler:** Used for background scheduled tasks.
 
 **Testing status**
-- Testing agent used after significant changes: YES, used after implementing the Classi chatbot and auto-suggest features. All tests passed.
+- Testing agent used after significant changes: YES ().
 - Troubleshoot agent used after agent stuck in loop: NO.
 - Test files created: None.
-- Known regressions: None from this session.
+- Known regressions: None identified.
 
 **Credentials to test flow:**
-- Register a new user via the UI, e.g.,  / .
+- **Standard User:** Register a new user via the UI (e.g.,  /  with a secret code).
+- **Super Admin:** Login with  / . The application will force a password and secret code change on first login.
 
 **What agent forgot to execute**
-- **Finalize Original Feature Set:** The agent has been correctly prioritizing new user requests, but several items from an earlier multi-feature request remain incomplete:
-    1.  The UI for the  has not been built out.
-    2.  The link to search the HS Library from the classification item edit dialog was not implemented.
-- **Downloadable Alcohol Guide:** The user requested a downloadable PDF guide for the alcohol calculations, which was not created.</analysis>
+- The agent was mid-task implementing the admin UI. The work was logically paused and not forgotten. The next steps are clearly defined to continue this task.</analysis>
