@@ -412,35 +412,59 @@ export default function AlcoholCalculatorPage() {
               </div>
             </div>
 
-            {/* ABV */}
+            {/* ABV - Custom and Presets */}
             <div className="space-y-2">
-              <Label htmlFor="alcohol_percentage">Alcohol by Volume (% ABV)</Label>
-              <div className="flex items-center gap-4">
-                <Input
-                  id="alcohol_percentage"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={formData.alcohol_percentage}
-                  onChange={(e) => setFormData({ ...formData, alcohol_percentage: parseFloat(e.target.value) || 0 })}
-                  className="flex-1"
-                  data-testid="abv-input"
-                />
-                <div className="flex gap-2">
-                  {[5, 12, 40].map((abv) => (
-                    <Button
-                      key={abv}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setFormData({ ...formData, alcohol_percentage: abv })}
-                      className={cn(formData.alcohol_percentage === abv && "border-primary bg-primary/10")}
-                    >
-                      {abv}%
-                    </Button>
-                  ))}
+              <Label htmlFor="alcohol_percentage">Alcohol by Volume (% ABV) *</Label>
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1">
+                  <Percent className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="alcohol_percentage"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    placeholder="Enter custom ABV"
+                    value={formData.alcohol_percentage}
+                    onChange={(e) => setFormData({ ...formData, alcohol_percentage: parseFloat(e.target.value) || 0 })}
+                    className="pl-9"
+                    data-testid="abv-input"
+                  />
                 </div>
               </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <span className="text-xs text-muted-foreground mr-2 self-center">Quick select:</span>
+                {[
+                  { abv: 4.5, label: '4.5% Beer' },
+                  { abv: 5, label: '5% Lager' },
+                  { abv: 8, label: '8% Strong Beer' },
+                  { abv: 12, label: '12% Wine' },
+                  { abv: 14, label: '14% Wine' },
+                  { abv: 17, label: '17% Fortified' },
+                  { abv: 20, label: '20% Liqueur' },
+                  { abv: 35, label: '35% Spirits' },
+                  { abv: 40, label: '40% Whiskey' },
+                  { abv: 45, label: '45% Rum' },
+                  { abv: 50, label: '50% Overproof' },
+                  { abv: 75, label: '75% High Proof' },
+                ].map(({ abv, label }) => (
+                  <Button
+                    key={abv}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, alcohol_percentage: abv })}
+                    className={cn(
+                      "h-7 text-xs px-2",
+                      formData.alcohol_percentage === abv && "border-primary bg-primary/10 text-primary"
+                    )}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Enter any custom ABV value or select from common presets above
+              </p>
             </div>
 
             {/* CIF Value */}
