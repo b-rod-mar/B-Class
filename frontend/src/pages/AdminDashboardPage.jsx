@@ -71,8 +71,11 @@ export default function AdminDashboardPage() {
   const [editUserOpen, setEditUserOpen] = useState(false);
   const [broadcastOpen, setBroadcastOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [deleteUserOpen, setDeleteUserOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   // Form states
   const [newUser, setNewUser] = useState({ email: '', name: '', company: '', password: '', role: 'user', admin_access_level: '' });
