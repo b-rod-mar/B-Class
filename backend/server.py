@@ -3153,6 +3153,281 @@ async def get_vehicle_rates(user: dict = Depends(get_current_user)):
         "note": "Rates based on Bahamas Customs Management Act and 2024 Budget"
     }
 
+@api_router.get("/vehicle/guide")
+async def get_vehicle_calculation_guide():
+    """Download PDF guide for vehicle duty calculations"""
+    from fastapi.responses import StreamingResponse
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+    from reportlab.lib.units import inch
+    
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.75*inch, bottomMargin=0.75*inch)
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=18, spaceAfter=12, textColor=colors.HexColor('#2DD4BF'))
+    heading_style = ParagraphStyle('Heading', parent=styles['Heading2'], fontSize=14, spaceAfter=8, spaceBefore=16, textColor=colors.HexColor('#2DD4BF'))
+    subheading_style = ParagraphStyle('SubHeading', parent=styles['Heading3'], fontSize=12, spaceAfter=6, spaceBefore=12)
+    body_style = ParagraphStyle('Body', parent=styles['Normal'], fontSize=10, spaceAfter=6, leading=14)
+    note_style = ParagraphStyle('Note', parent=styles['Normal'], fontSize=9, textColor=colors.grey, spaceAfter=6)
+    
+    story = []
+    
+    # Title
+    story.append(Paragraph("Bahamas Vehicle Import Duty Calculation Guide", title_style))
+    story.append(Paragraph("Class-B HS Code Agent - Vehicle Brokering Calculator", note_style))
+    story.append(Spacer(1, 0.25*inch))
+    
+    # Overview
+    story.append(Paragraph("Overview", heading_style))
+    story.append(Paragraph(
+        "This guide explains how vehicle import duties are calculated for imports into The Bahamas. "
+        "The calculation includes Import Duty (based on vehicle type and engine size), Environmental Levy, "
+        "Processing Fee, Stamp Duty, and VAT based on the Customs Management Act (CMA) and current tariff schedules.",
+        body_style
+    ))
+    story.append(Paragraph("Note: USD and BSD are pegged at 1:1 exchange rate.", note_style))
+    
+    # Gasoline/Diesel Vehicles
+    story.append(Paragraph("1. Gasoline & Diesel Vehicle Duty Rates", heading_style))
+    
+    gas_data = [
+        ['Engine Size (cc)', 'CIF Range', 'Duty Rate', 'HS Code'],
+        ['Under 1,000cc', 'All values', '45%', '8703.21'],
+        ['1,000 - 1,999cc', 'All values', '65%', '8703.22'],
+        ['2,000 - 2,999cc', 'Under $40,000', '65%', '8703.23'],
+        ['2,000 - 2,999cc', '$40,000+', '75%', '8703.23'],
+        ['3,000cc and above', 'Under $40,000', '75%', '8703.24'],
+        ['3,000cc and above', '$40,000+', '85%', '8703.24'],
+    ]
+    
+    gas_table = Table(gas_data, colWidths=[1.5*inch, 1.3*inch, 1*inch, 1*inch])
+    gas_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a3a3a')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f8f8')]),
+    ]))
+    story.append(gas_table)
+    story.append(Spacer(1, 0.15*inch))
+    
+    # Electric/Hybrid Vehicles
+    story.append(Paragraph("2. Electric & Hybrid Vehicle Duty Rates", heading_style))
+    story.append(Paragraph("Electric and hybrid vehicles receive preferential duty rates to encourage green vehicle adoption.", body_style))
+    
+    ev_data = [
+        ['Vehicle Type', 'CIF Range', 'Duty Rate', 'HS Code'],
+        ['Electric', 'Under $50,000', '25%', '8703.80'],
+        ['Electric', '$50,000 - $100,000', '35%', '8703.80'],
+        ['Electric', 'Over $100,000', '45%', '8703.80'],
+        ['Hybrid', 'Under $40,000', '45%', '8703.40/60/70'],
+        ['Hybrid', '$40,000 - $80,000', '55%', '8703.40/60/70'],
+        ['Hybrid', 'Over $80,000', '65%', '8703.40/60/70'],
+    ]
+    
+    ev_table = Table(ev_data, colWidths=[1.3*inch, 1.5*inch, 1*inch, 1.3*inch])
+    ev_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a3a3a')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f8f8')]),
+    ]))
+    story.append(ev_table)
+    story.append(Spacer(1, 0.15*inch))
+    
+    # Commercial Vehicles
+    story.append(Paragraph("3. Commercial Vehicle Duty Rates", heading_style))
+    
+    comm_data = [
+        ['Vehicle Type', 'Duty Rate', 'HS Code'],
+        ['Trucks (under 5 tonnes)', '45%', '8704.21'],
+        ['Trucks (5-20 tonnes)', '35%', '8704.22'],
+        ['Trucks (over 20 tonnes)', '25%', '8704.23'],
+        ['Buses (10+ passengers)', '35%', '8702.10/20'],
+    ]
+    
+    comm_table = Table(comm_data, colWidths=[2*inch, 1.2*inch, 1.3*inch])
+    comm_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a3a3a')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f8f8')]),
+    ]))
+    story.append(comm_table)
+    story.append(Spacer(1, 0.15*inch))
+    
+    # Environmental Levy
+    story.append(Paragraph("4. Environmental Levy", heading_style))
+    story.append(Paragraph(
+        "An environmental levy applies to all vehicle imports. The amount depends on the vehicle's age:",
+        body_style
+    ))
+    
+    env_data = [
+        ['Vehicle Age', 'Environmental Levy'],
+        ['New vehicles (0-3 years)', '$300 flat fee'],
+        ['Used vehicles (4-10 years)', '$300 flat fee'],
+        ['Vehicles 11+ years old', '20% of landed cost (MOF approval required)'],
+        ['Antique vehicles (25+ years)', '$200 flat fee'],
+        ['Used tires (per tire)', '$15 per tire'],
+    ]
+    
+    env_table = Table(env_data, colWidths=[2.2*inch, 3*inch])
+    env_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a3a3a')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f8f8')]),
+        ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor('#fff3cd')),
+    ]))
+    story.append(env_table)
+    story.append(Paragraph("* Ministry of Finance approval required for vehicles over 10 years old.", note_style))
+    
+    # Other Fees
+    story.append(Paragraph("5. Additional Fees & VAT", heading_style))
+    
+    fees_data = [
+        ['Fee Type', 'Rate/Amount', 'Notes'],
+        ['Processing Fee', '1% of CIF', 'Min $10, Max $750'],
+        ['Stamp Duty', '8% of CIF', 'Standard rate'],
+        ['VAT', '10%', 'On (CIF + Duty + Levy + Fees)'],
+    ]
+    
+    fees_table = Table(fees_data, colWidths=[1.5*inch, 1.3*inch, 2.2*inch])
+    fees_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a3a3a')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f8f8')]),
+    ]))
+    story.append(fees_table)
+    
+    # Calculation Formula
+    story.append(Paragraph("6. Complete Calculation Formula", heading_style))
+    
+    formula_data = [
+        ['Step', 'Calculation'],
+        ['1. Import Duty', 'CIF Value × Duty Rate (based on vehicle type/engine)'],
+        ['2. Environmental Levy', '$300 (new/used) OR 20% (11+ years) OR $200 (antique)'],
+        ['3. Processing Fee', 'CIF × 1% (min $10, max $750)'],
+        ['4. Stamp Duty', 'CIF × 8%'],
+        ['5. Landed Cost', 'CIF + Import Duty + Env Levy + Processing Fee'],
+        ['6. VAT (10%)', '(Landed Cost + Stamp Duty) × 10%'],
+        ['7. TOTAL', 'Landed Cost + Stamp Duty + VAT'],
+    ]
+    
+    formula_table = Table(formula_data, colWidths=[1.8*inch, 4*inch])
+    formula_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a3a3a')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f8f8')]),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#2DD4BF')),
+        ('TEXTCOLOR', (0, -1), (-1, -1), colors.white),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+    ]))
+    story.append(formula_table)
+    
+    # Example Calculation
+    story.append(Paragraph("7. Example Calculation", heading_style))
+    story.append(Paragraph("Vehicle: 2023 Toyota Camry, 2.5L Gasoline (2,500cc), CIF $35,000 USD", subheading_style))
+    
+    example_data = [
+        ['Component', 'Calculation', 'Amount'],
+        ['CIF Value', 'Purchase + Shipping + Insurance', '$35,000.00'],
+        ['Duty Rate', '2,000-2,999cc, under $40k = 65%', '65%'],
+        ['Import Duty', '$35,000 × 65%', '$22,750.00'],
+        ['Environmental Levy', 'New vehicle flat fee', '$300.00'],
+        ['Processing Fee', '$35,000 × 1%', '$350.00'],
+        ['Stamp Duty', '$35,000 × 8%', '$2,800.00'],
+        ['Landed Cost', '$35,000 + $22,750 + $300 + $350', '$58,400.00'],
+        ['VAT (10%)', '($58,400 + $2,800) × 10%', '$6,120.00'],
+        ['TOTAL LANDED COST', '', '$67,320.00'],
+    ]
+    
+    example_table = Table(example_data, colWidths=[1.8*inch, 2.5*inch, 1.3*inch])
+    example_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a3a3a')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f8f8')]),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#2DD4BF')),
+        ('TEXTCOLOR', (0, -1), (-1, -1), colors.white),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+    ]))
+    story.append(example_table)
+    
+    # Concessions
+    story.append(Paragraph("8. Special Concessions", heading_style))
+    story.append(Paragraph(
+        "Certain buyers may qualify for reduced duty rates under special concession programs:",
+        body_style
+    ))
+    story.append(Paragraph("• First-time vehicle owner concession", body_style))
+    story.append(Paragraph("• Returning resident concession", body_style))
+    story.append(Paragraph("• Investment Act concessions (for qualifying businesses)", body_style))
+    story.append(Paragraph("• Public service vehicle concessions", body_style))
+    story.append(Paragraph("Contact Bahamas Customs for eligibility requirements.", note_style))
+    
+    # Disclaimer
+    story.append(Spacer(1, 0.3*inch))
+    story.append(Paragraph("Important Notice", heading_style))
+    story.append(Paragraph(
+        "This guide is for informational purposes only. Actual duties and fees are determined by "
+        "Bahamas Customs at the time of import. Rates may change without notice. Always consult "
+        "with Bahamas Customs for official rates and requirements. Ministry of Finance approval is "
+        "required for importing vehicles over 10 years old.",
+        note_style
+    ))
+    story.append(Paragraph(
+        "Contact: Bahamas Customs Department | Tel: +1 (242) 325-6550 | customs.bahamas.gov.bs",
+        note_style
+    ))
+    story.append(Spacer(1, 0.2*inch))
+    story.append(Paragraph(f"Generated by Class-B HS Code Agent | {datetime.now(timezone.utc).strftime('%Y-%m-%d')}", note_style))
+    
+    # Build PDF
+    doc.build(story)
+    buffer.seek(0)
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=Bahamas_Vehicle_Duty_Guide.pdf"}
+    )
+
 @api_router.get("/vehicle/template")
 async def get_vehicle_template(user: dict = Depends(get_current_user)):
     """Download CSV template for bulk vehicle calculations"""
