@@ -99,7 +99,15 @@ export default function ClassificationResultPage() {
     
     setSaving(true);
     try {
-      await api.put(`/classifications/${id}/items/${editIndex}`, editingItem);
+      // Mark as user_updated when saving changes from needs_review
+      const itemToSave = {
+        ...editingItem,
+        review_status: editingItem.review_status === 'needs_review' ? 'user_updated' : editingItem.review_status,
+        updated_by_user: true,
+        updated_at: new Date().toISOString()
+      };
+      
+      await api.put(`/classifications/${id}/items/${editIndex}`, itemToSave);
       await fetchClassification();
       toast.success('Item updated successfully');
       setEditingItem(null);
