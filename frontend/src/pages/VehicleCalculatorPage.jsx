@@ -180,7 +180,8 @@ const initialFormState = {
   qualifies_for_concession: false,
   concession_type: '',
   is_antique: false,
-  num_tires: 4
+  num_tires: 4,
+  mof_approval_granted: false  // For vehicles >10 years old
 };
 
 export default function VehicleCalculatorPage() {
@@ -863,10 +864,51 @@ export default function VehicleCalculatorPage() {
                     </div>
                   )}
                   
-                  {/* Auto-detect warning */}
+                  {/* Auto-detect warning for >10 year old vehicles */}
                   {formData.year && (new Date().getFullYear() - formData.year > 10) && !formData.is_antique && (
-                    <div className="p-2 bg-rose-500/10 border border-rose-500/20 rounded text-xs text-rose-400">
-                      ⚠️ Vehicle is {new Date().getFullYear() - formData.year} years old — 20% Environmental Levy will apply. Ministry of Finance approval required.
+                    <div className="space-y-3">
+                      <div className="p-2 bg-rose-500/10 border border-rose-500/20 rounded text-xs text-rose-400">
+                        ⚠️ Vehicle is {new Date().getFullYear() - formData.year} years old — 20% Environmental Levy will apply. Ministry of Finance approval required.
+                      </div>
+                      
+                      {/* MOF Approval Granted Button */}
+                      <div className="flex items-center justify-between p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                        <div className="space-y-0.5">
+                          <Label htmlFor="mof_approval" className="text-emerald-400 font-medium">MOF Approval Status</Label>
+                          <p className="text-xs text-muted-foreground">Confirm if Ministry of Finance approval has been granted</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant={formData.mof_approval_granted ? "default" : "outline"}
+                          size="sm"
+                          className={cn(
+                            "transition-all",
+                            formData.mof_approval_granted 
+                              ? "bg-emerald-600 hover:bg-emerald-700 text-white" 
+                              : "border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10"
+                          )}
+                          onClick={() => setFormData({ 
+                            ...formData, 
+                            mof_approval_granted: !formData.mof_approval_granted 
+                          })}
+                          data-testid="mof-approval-btn"
+                        >
+                          {formData.mof_approval_granted ? (
+                            <>
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              Approval Granted
+                            </>
+                          ) : (
+                            'Mark as Approved'
+                          )}
+                        </Button>
+                      </div>
+                      
+                      {!formData.mof_approval_granted && (
+                        <p className="text-[10px] text-amber-400/80 italic">
+                          Note: Without MOF approval, importing vehicles over 10 years old may not be permitted. Contact the Ministry of Finance for approval before import.
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
