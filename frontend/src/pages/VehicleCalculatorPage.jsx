@@ -522,6 +522,28 @@ export default function VehicleCalculatorPage() {
           </Dialog>
           <Button 
             variant="outline" 
+            onClick={async () => {
+              try {
+                const response = await api.get('/vehicle/guide', { responseType: 'blob' });
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'Bahamas_Vehicle_Duty_Guide.pdf');
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                toast.success('Guide downloaded!');
+              } catch (error) {
+                toast.error('Failed to download guide');
+              }
+            }}
+            data-testid="download-vehicle-guide-btn"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Download Guide
+          </Button>
+          <Button 
+            variant="outline" 
             onClick={() => setShowHistory(!showHistory)}
             data-testid="toggle-history-btn"
           >
