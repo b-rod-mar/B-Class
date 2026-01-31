@@ -804,24 +804,38 @@ export default function VehicleCalculatorPage() {
                           <span className="font-mono">{formatCurrency(result.import_duty)}</span>
                         </div>
                         <div className="flex justify-between py-2 border-b border-border/50">
-                          <span className="text-muted-foreground">
-                            Environmental Levy ({result.environmental_levy_rate})
-                          </span>
+                          <div>
+                            <span className="text-muted-foreground">Environmental Levy</span>
+                            <p className="text-xs text-muted-foreground">{result.environmental_levy_description || 'Standard $250'}</p>
+                          </div>
                           <span className="font-mono">{formatCurrency(result.environmental_levy)}</span>
                         </div>
+                        {result.tire_levy > 0 && (
+                          <div className="flex justify-between py-2 border-b border-border/50">
+                            <div>
+                              <span className="text-muted-foreground">Used Tire Levy</span>
+                              <p className="text-xs text-muted-foreground">$5 per tire × {result.num_tires || 4} tires</p>
+                            </div>
+                            <span className="font-mono">{formatCurrency(result.tire_levy)}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between py-2 border-b border-border/50">
-                          <span className="text-muted-foreground">
-                            Stamp Duty ({result.stamp_duty_rate})
-                          </span>
-                          <span className="font-mono">{formatCurrency(result.stamp_duty)}</span>
-                        </div>
-                        <div className="flex justify-between py-2 border-b border-border/50">
-                          <span className="text-muted-foreground">VAT ({result.vat_rate})</span>
-                          <span className="font-mono">{formatCurrency(result.vat)}</span>
-                        </div>
-                        <div className="flex justify-between py-2 border-b border-border/50">
-                          <span className="text-muted-foreground">Processing Fee</span>
+                          <div>
+                            <span className="text-muted-foreground">Processing Fee</span>
+                            <p className="text-xs text-muted-foreground">{result.processing_fee_description || '1% of CIF'}</p>
+                          </div>
                           <span className="font-mono">{formatCurrency(result.processing_fee)}</span>
+                        </div>
+                        <div className="flex justify-between py-2 border-b border-border/50 bg-muted/30 px-2 rounded">
+                          <span className="text-muted-foreground font-medium">Landed Cost (subtotal)</span>
+                          <span className="font-mono">{formatCurrency(result.landed_cost || (result.cif_value + result.import_duty + result.environmental_levy + result.processing_fee))}</span>
+                        </div>
+                        <div className="flex justify-between py-2 border-b border-border/50">
+                          <div>
+                            <span className="text-muted-foreground">VAT ({result.vat_rate})</span>
+                            <p className="text-xs text-muted-foreground">10% of Landed Cost</p>
+                          </div>
+                          <span className="font-mono">{formatCurrency(result.vat)}</span>
                         </div>
                       </div>
 
