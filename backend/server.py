@@ -3484,6 +3484,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Background task holder
+weekly_log_task = None
+
+@app.on_event("startup")
+async def startup_event():
+    """Start background tasks on app startup"""
+    global weekly_log_task
+    weekly_log_task = asyncio.create_task(weekly_log_scheduler())
+    logger.info("Weekly account log scheduler started")
+    
+    # Send initial log on startup (captures any accounts created before scheduler was running)
+    # Comment this out if you don't want immediate log on startup
+    # await send_weekly_account_log()
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    global weekly_log_task
+    if weekly_log_task:
+        weekly_log_task.cancel()
+        try:
+            await weekly_log_task
+        except asyncio.CancelledError:
+            pass
     client.close()
