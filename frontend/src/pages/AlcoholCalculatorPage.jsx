@@ -282,17 +282,17 @@ export default function AlcoholCalculatorPage() {
     }
   };
 
-  const exportBatch = async (batchId) => {
+  const exportBatch = async (batchId, format = 'csv') => {
     try {
-      const response = await api.get(`/alcohol/batches/${batchId}/export`, { responseType: 'blob' });
+      const response = await api.get(`/alcohol/batches/${batchId}/export?format=${format}`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `alcohol_batch_${batchId.slice(0, 8)}.csv`);
+      link.setAttribute('download', `alcohol_batch_${batchId.slice(0, 8)}.${format}`);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      toast.success('Batch exported!');
+      toast.success(`Exported as ${format.toUpperCase()}!`);
     } catch (error) {
       toast.error('Export failed');
     }
@@ -789,11 +789,20 @@ export default function AlcoholCalculatorPage() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => exportBatch(batchResult.batch_id)}
-                        data-testid="export-batch-btn"
+                        onClick={() => exportBatch(batchResult.batch_id, 'csv')}
+                        data-testid="export-batch-csv"
                       >
-                        <Download className="h-4 w-4 mr-2" />
-                        Export CSV
+                        <Download className="h-4 w-4 mr-1" />
+                        CSV
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => exportBatch(batchResult.batch_id, 'xlsx')}
+                        data-testid="export-batch-xlsx"
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        Excel
                       </Button>
                     </div>
                   </CardHeader>
