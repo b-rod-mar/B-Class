@@ -968,13 +968,16 @@ async def update_classification_item(
     
     # Recalculate stats
     auto_approved = sum(1 for item in classification["items"] if item.get("review_status") == "auto_approved")
+    needs_review = sum(1 for item in classification["items"] if item.get("review_status") == "needs_review")
+    user_updated = sum(1 for item in classification["items"] if item.get("review_status") == "user_updated")
     
     await db.classifications.update_one(
         {"id": classification_id},
         {"$set": {
             "items": classification["items"],
             "auto_approved_count": auto_approved,
-            "needs_review_count": len(classification["items"]) - auto_approved,
+            "needs_review_count": needs_review,
+            "user_updated_count": user_updated,
             "updated_at": datetime.now(timezone.utc).isoformat()
         }}
     )
