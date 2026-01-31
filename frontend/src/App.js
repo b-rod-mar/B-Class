@@ -98,6 +98,7 @@ function AppRoutes() {
         <Route path="tariffs" element={<TariffsDutiesPage />} />
         <Route path="vehicle-calculator" element={<VehicleCalculatorPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
