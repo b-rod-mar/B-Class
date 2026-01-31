@@ -3245,6 +3245,66 @@ async def get_vehicle_calculations(user: dict = Depends(get_current_user)):
     
     return calculations
 
+@api_router.get("/vehicle/history/export")
+async def export_vehicle_history(user: dict = Depends(get_current_user)):
+    """Export all vehicle calculation history as Excel"""
+    from fastapi.responses import StreamingResponse
+    
+    calculations = await db.vehicle_calculations.find(
+        {"user_id": user["id"]},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(500)
+    
+    if not calculations:
+        raise HTTPException(status_code=404, detail="No calculations to export")
+    
+    # Prepare data for Excel
+    rows = []
+    for calc in calculations:
+        rows.append({
+            "Date": calc.get("created_at", "")[:10] if isinstance(calc.get("created_at"), str) else calc.get("created_at").strftime("%Y-%m-%d") if calc.get("created_at") else "",
+            "VIN": calc.get("vin", ""),
+            "Year": calc.get("year", ""),
+            "Make": calc.get("make", ""),
+            "Model": calc.get("model", ""),
+            "Body Style": calc.get("body_style", ""),
+            "Vehicle Type": calc.get("vehicle_type", ""),
+            "Engine Size (cc)": calc.get("engine_size_cc", ""),
+            "Country of Origin": calc.get("country_of_origin", ""),
+            "CIF Value": calc.get("cif_value", 0),
+            "Duty Rate": f"{calc.get('duty_rate', 0) * 100:.0f}%" if calc.get('duty_rate') else "",
+            "Import Duty": calc.get("import_duty", 0),
+            "Environmental Levy": calc.get("environmental_levy", 0),
+            "Processing Fee": calc.get("processing_fee", 0),
+            "Stamp Duty": calc.get("stamp_duty", 0),
+            "VAT": calc.get("vat", 0),
+            "Total Landed Cost": calc.get("total_landed_cost", 0),
+            "HS Code": calc.get("hs_code", ""),
+            "New/Used": "New" if calc.get("is_new") else "Used",
+            "Antique": "Yes" if calc.get("is_antique") else "No",
+        })
+    
+    df = pd.DataFrame(rows)
+    
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Vehicle History', index=False)
+        
+        worksheet = writer.sheets['Vehicle History']
+        for column in worksheet.columns:
+            max_length = max(len(str(cell.value or "")) for cell in column)
+            worksheet.column_dimensions[column[0].column_letter].width = min(max_length + 2, 30)
+    
+    output.seek(0)
+    
+    filename = f"vehicle_history_{datetime.now(timezone.utc).strftime('%Y%m%d')}.xlsx"
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
 @api_router.get("/vehicle/calculations/{calc_id}")
 async def get_vehicle_calculation(calc_id: str, user: dict = Depends(get_current_user)):
     """Get a specific vehicle calculation"""
