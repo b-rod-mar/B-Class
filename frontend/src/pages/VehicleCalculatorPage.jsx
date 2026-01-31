@@ -868,7 +868,7 @@ export default function VehicleCalculatorPage() {
                   {formData.year && (new Date().getFullYear() - formData.year > 10) && !formData.is_antique && (
                     <div className="space-y-3">
                       <div className="p-2 bg-rose-500/10 border border-rose-500/20 rounded text-xs text-rose-400">
-                        ⚠️ Vehicle is {new Date().getFullYear() - formData.year} years old — 20% Environmental Levy will apply. Ministry of Finance approval required.
+                        ⚠️ Vehicle is 11 years or older — 20% Environmental Levy will apply. Ministry of Finance approval required.
                       </div>
                       
                       {/* MOF Approval Granted Button */}
