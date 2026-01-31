@@ -345,12 +345,14 @@ export default function ClassificationResultPage() {
                         </div>
                       </td>
                       <td>
-                        <Badge className={cn(
-                          "text-xs",
-                          item.review_status === 'user_updated' 
-                            ? 'bg-purple-500/20 text-purple-400 border-purple-500/30'
-                            : getStatusColor(item.review_status)
-                        )}>
+                        <Badge 
+                          variant={item.review_status === 'user_updated' ? 'outline' : 'default'}
+                          className={cn(
+                            "text-xs",
+                            item.review_status === 'user_updated' 
+                              ? 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+                              : getStatusColor(item.review_status)
+                          )}>
                           {item.review_status === 'user_updated' ? 'User Updated' : getStatusLabel(item.review_status)}
                         </Badge>
                       </td>
