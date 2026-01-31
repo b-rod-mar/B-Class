@@ -78,6 +78,7 @@ export default function AlcoholCalculatorPage() {
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [rates, setRates] = useState(null);
+  const [deleting, setDeleting] = useState(null);
   
   // Bulk upload state
   const [uploadFile, setUploadFile] = useState(null);
