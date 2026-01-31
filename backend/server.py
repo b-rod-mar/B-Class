@@ -1756,6 +1756,60 @@ async def get_alcohol_calculations(user: dict = Depends(get_current_user)):
     
     return calculations
 
+@api_router.get("/alcohol/history/export")
+async def export_alcohol_history(user: dict = Depends(get_current_user)):
+    """Export all alcohol calculation history as Excel"""
+    from fastapi.responses import StreamingResponse
+    
+    calculations = await db.alcohol_calculations.find(
+        {"user_id": user["id"]},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(500)
+    
+    if not calculations:
+        raise HTTPException(status_code=404, detail="No calculations to export")
+    
+    # Prepare data for Excel
+    rows = []
+    for calc in calculations:
+        rows.append({
+            "Date": calc.get("created_at", "")[:10] if isinstance(calc.get("created_at"), str) else calc.get("created_at").strftime("%Y-%m-%d") if calc.get("created_at") else "",
+            "Product Name": calc.get("product_name", ""),
+            "Alcohol Type": calc.get("alcohol_type", ""),
+            "ABV %": calc.get("abv_percentage", 0),
+            "Volume (ml)": calc.get("volume_ml", 0),
+            "Quantity": calc.get("quantity", 0),
+            "CIF Value": calc.get("cif_value", 0),
+            "Import Duty": calc.get("import_duty", 0),
+            "Excise Duty": calc.get("excise_duty", 0),
+            "VAT": calc.get("vat", 0),
+            "License Fee": calc.get("license_fee", 0),
+            "Total Landed Cost": calc.get("total_landed_cost", 0),
+            "HS Code": calc.get("hs_code", ""),
+            "Liquor License": "Yes" if calc.get("has_liquor_license") else "No",
+        })
+    
+    df = pd.DataFrame(rows)
+    
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Alcohol History', index=False)
+        
+        worksheet = writer.sheets['Alcohol History']
+        for column in worksheet.columns:
+            max_length = max(len(str(cell.value or "")) for cell in column)
+            worksheet.column_dimensions[column[0].column_letter].width = min(max_length + 2, 30)
+    
+    output.seek(0)
+    
+    filename = f"alcohol_history_{datetime.now(timezone.utc).strftime('%Y%m%d')}.xlsx"
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
 @api_router.get("/alcohol/calculations/{calc_id}", response_model=AlcoholCalculationResult)
 async def get_alcohol_calculation(calc_id: str, user: dict = Depends(get_current_user)):
     """Get a specific alcohol calculation"""
