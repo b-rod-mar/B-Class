@@ -78,6 +78,7 @@ function AppRoutes() {
         <Route path="notations" element={<NotationsPage />} />
         <Route path="tariffs" element={<TariffsDutiesPage />} />
         <Route path="vehicle-calculator" element={<VehicleCalculatorPage />} />
+        <Route path="profile" element={<ProfilePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
