@@ -2843,13 +2843,13 @@ async def get_vehicle_template(user: dict = Depends(get_current_user)):
     """Download CSV template for bulk vehicle calculations"""
     from fastapi.responses import StreamingResponse
     
-    template_data = """vin,make,model,year,vehicle_type,engine_size_cc,cif_value,country_of_origin,is_new,mileage,color
-1HGBH41JXMN109186,Toyota,Camry,2023,gasoline,2500,35000,Japan,true,0,White
-5YJSA1DG9DFP14705,Tesla,Model S,2024,electric,,85000,USA,true,0,Black
-WVWZZZ3CZWE123456,Volkswagen,Golf,2023,hybrid,1400,42000,Germany,true,0,Silver
-1C4RJFAG5FC123456,Jeep,Grand Cherokee,2022,gasoline,3600,55000,USA,false,25000,Blue
-3FADP4BJ9DM123456,Ford,Focus,2021,gasoline,1000,18000,USA,false,45000,Red
-JN1TANT31U0000001,Nissan,Leaf,2024,electric,,32000,Japan,true,0,White"""
+    template_data = """vin,make,model,year,vehicle_type,body_style,engine_size_cc,cif_value,country_of_origin,is_new,mileage,color
+1HGBH41JXMN109186,Toyota,Camry,2023,gasoline,sedan,2500,35000,Japan,true,0,White
+5YJSA1DG9DFP14705,Tesla,Model S,2024,electric,sedan,,85000,USA,true,0,Black
+WVWZZZ3CZWE123456,Volkswagen,Golf,2023,hybrid,hatchback,1400,42000,Germany,true,0,Silver
+1C4RJFAG5FC123456,Jeep,Grand Cherokee,2022,gasoline,suv,3600,55000,USA,false,25000,Blue
+3FADP4BJ9DM123456,Ford,Focus,2021,gasoline,hatchback,1000,18000,USA,false,45000,Red
+JN1TANT31U0000001,Nissan,Leaf,2024,electric,hatchback,,32000,Japan,true,0,White"""
     
     output = io.StringIO()
     output.write(template_data)
