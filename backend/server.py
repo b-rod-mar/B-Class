@@ -1730,6 +1730,208 @@ async def get_alcohol_rates(user: dict = Depends(get_current_user)):
         "note": "Rates based on Bahamas Customs Management Act"
     }
 
+@api_router.get("/alcohol/guide")
+async def get_alcohol_calculation_guide():
+    """Download PDF guide for alcohol duty calculations"""
+    from fastapi.responses import StreamingResponse
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, ListFlowable, ListItem
+    from reportlab.lib.units import inch
+    
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.75*inch, bottomMargin=0.75*inch)
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=18, spaceAfter=12, textColor=colors.HexColor('#2DD4BF'))
+    heading_style = ParagraphStyle('Heading', parent=styles['Heading2'], fontSize=14, spaceAfter=8, spaceBefore=16, textColor=colors.HexColor('#2DD4BF'))
+    subheading_style = ParagraphStyle('SubHeading', parent=styles['Heading3'], fontSize=12, spaceAfter=6, spaceBefore=12)
+    body_style = ParagraphStyle('Body', parent=styles['Normal'], fontSize=10, spaceAfter=6, leading=14)
+    note_style = ParagraphStyle('Note', parent=styles['Normal'], fontSize=9, textColor=colors.grey, spaceAfter=6)
+    
+    story = []
+    
+    # Title
+    story.append(Paragraph("Bahamas Alcohol Import Duty Calculation Guide", title_style))
+    story.append(Paragraph("Class-B HS Code Agent - B-CLASS Alcohol Calculator", note_style))
+    story.append(Spacer(1, 0.25*inch))
+    
+    # Overview
+    story.append(Paragraph("Overview", heading_style))
+    story.append(Paragraph(
+        "This guide explains how alcohol import duties are calculated for imports into The Bahamas. "
+        "The calculation includes Import Duty, Excise Duty, VAT, and License Fees based on the "
+        "Customs Management Act (CMA) and current tariff schedules.",
+        body_style
+    ))
+    
+    # Duty Rates Table
+    story.append(Paragraph("1. Import Duty Rates by Alcohol Type", heading_style))
+    
+    duty_data = [
+        ['Alcohol Type', 'Import Duty Rate', 'HS Code Range'],
+        ['Wine', '45%', '2204.xx'],
+        ['Beer', '35%', '2203.xx'],
+        ['Spirits (Rum, Vodka, Whiskey)', '45%', '2208.xx'],
+        ['Liqueur & Cordials', '45%', '2208.70'],
+        ['Other Alcohol', '45%', '22xx.xx'],
+    ]
+    
+    duty_table = Table(duty_data, colWidths=[2.5*inch, 1.5*inch, 1.5*inch])
+    duty_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a3a3a')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f0f0f0')),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f8f8')]),
+    ]))
+    story.append(duty_table)
+    story.append(Spacer(1, 0.15*inch))
+    
+    # Excise Duty
+    story.append(Paragraph("2. Excise Duty Calculation", heading_style))
+    story.append(Paragraph(
+        "Excise duty is calculated differently based on alcohol type:",
+        body_style
+    ))
+    
+    excise_data = [
+        ['Alcohol Type', 'Excise Method', 'Rate'],
+        ['Beer (< 6% ABV)', 'Per Liter', '$0.75 per liter'],
+        ['Beer (≥ 6% ABV)', 'Per LPA', '$15.00 per LPA'],
+        ['Wine', 'Per LPA', '$15.00 per LPA'],
+        ['Spirits', 'Per LPA', '$25.00 per LPA'],
+        ['Liqueur', 'Per LPA', '$20.00 per LPA'],
+    ]
+    
+    excise_table = Table(excise_data, colWidths=[2*inch, 1.5*inch, 2*inch])
+    excise_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a3a3a')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f8f8')]),
+    ]))
+    story.append(excise_table)
+    story.append(Spacer(1, 0.1*inch))
+    
+    story.append(Paragraph("LPA = Liters of Pure Alcohol = (Volume in Liters) × (ABV% / 100)", note_style))
+    story.append(Paragraph("Example: 750ml bottle at 40% ABV = 0.75L × 0.40 = 0.30 LPA", note_style))
+    
+    # VAT
+    story.append(Paragraph("3. Value Added Tax (VAT)", heading_style))
+    story.append(Paragraph(
+        "VAT is calculated at 10% on the total of CIF Value + Import Duty + Excise Duty.",
+        body_style
+    ))
+    story.append(Paragraph("VAT = (CIF + Import Duty + Excise Duty) × 10%", body_style))
+    
+    # License Fee
+    story.append(Paragraph("4. License Fee", heading_style))
+    story.append(Paragraph(
+        "A liquor license fee applies to commercial importers. The base fee is $50.00 per shipment, "
+        "with additional fees based on total value. Licensed importers may receive reduced rates.",
+        body_style
+    ))
+    
+    # Calculation Formula
+    story.append(Paragraph("5. Complete Calculation Formula", heading_style))
+    
+    formula_data = [
+        ['Step', 'Calculation'],
+        ['1. Import Duty', 'CIF Value × Duty Rate (35-45%)'],
+        ['2. Excise Duty', '(For Spirits/Wine) LPA × Rate per LPA × Quantity'],
+        ['', '(For Beer < 6%) Volume (L) × $0.75 × Quantity'],
+        ['3. Subtotal', 'CIF + Import Duty + Excise Duty'],
+        ['4. VAT (10%)', 'Subtotal × 10%'],
+        ['5. License Fee', '$50.00 base (if applicable)'],
+        ['6. TOTAL', 'Subtotal + VAT + License Fee'],
+    ]
+    
+    formula_table = Table(formula_data, colWidths=[1.5*inch, 4*inch])
+    formula_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a3a3a')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f8f8')]),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#2DD4BF')),
+        ('TEXTCOLOR', (0, -1), (-1, -1), colors.white),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+    ]))
+    story.append(formula_table)
+    
+    # Example Calculation
+    story.append(Paragraph("6. Example Calculation", heading_style))
+    story.append(Paragraph("Product: 12 bottles of Rum (750ml, 40% ABV) with CIF value of $540", subheading_style))
+    
+    example_data = [
+        ['Component', 'Calculation', 'Amount'],
+        ['CIF Value', '12 bottles × $45 each', '$540.00'],
+        ['Import Duty (45%)', '$540 × 45%', '$243.00'],
+        ['LPA Calculation', '0.75L × 40% × 12 bottles', '3.60 LPA'],
+        ['Excise Duty', '3.60 LPA × $25.00', '$90.00'],
+        ['Subtotal', '$540 + $243 + $90', '$873.00'],
+        ['VAT (10%)', '$873 × 10%', '$87.30'],
+        ['License Fee', 'Base fee', '$50.00'],
+        ['TOTAL DUE', '', '$1,010.30'],
+    ]
+    
+    example_table = Table(example_data, colWidths=[1.8*inch, 2.2*inch, 1.5*inch])
+    example_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a3a3a')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f8f8')]),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#2DD4BF')),
+        ('TEXTCOLOR', (0, -1), (-1, -1), colors.white),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+    ]))
+    story.append(example_table)
+    
+    # Disclaimer
+    story.append(Spacer(1, 0.3*inch))
+    story.append(Paragraph("Important Notice", heading_style))
+    story.append(Paragraph(
+        "This guide is for informational purposes only. Actual duties and fees are determined by "
+        "Bahamas Customs at the time of import. Rates may change without notice. Always consult "
+        "with Bahamas Customs for official rates and requirements.",
+        note_style
+    ))
+    story.append(Paragraph(
+        "Contact: Bahamas Customs Department | Tel: +1 (242) 325-6550 | customs.bahamas.gov.bs",
+        note_style
+    ))
+    story.append(Spacer(1, 0.2*inch))
+    story.append(Paragraph(f"Generated by Class-B HS Code Agent | {datetime.now(timezone.utc).strftime('%Y-%m-%d')}", note_style))
+    
+    # Build PDF
+    doc.build(story)
+    buffer.seek(0)
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=Bahamas_Alcohol_Duty_Guide.pdf"}
+    )
+
 @api_router.get("/alcohol/template")
 async def get_alcohol_template(user: dict = Depends(get_current_user)):
     """Download CSV template for bulk alcohol calculations"""
