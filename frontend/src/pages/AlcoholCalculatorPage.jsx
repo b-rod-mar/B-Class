@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -15,6 +15,7 @@ import {
 import { Switch } from '../components/ui/switch';
 import { Separator } from '../components/ui/separator';
 import { ScrollArea } from '../components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { 
   Wine, 
   Beer, 
@@ -31,7 +32,11 @@ import {
   Loader2,
   Info,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Upload,
+  FileSpreadsheet,
+  CheckCircle,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn, formatCurrency, formatDate } from '../lib/utils';
@@ -73,6 +78,12 @@ export default function AlcoholCalculatorPage() {
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [rates, setRates] = useState(null);
+  
+  // Bulk upload state
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [batchResult, setBatchResult] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     fetchHistory();
@@ -198,6 +209,93 @@ export default function AlcoholCalculatorPage() {
   const loadFromHistory = (calc) => {
     setResult(calc);
     setShowHistory(false);
+  };
+
+  // Bulk upload handlers
+  const handleDrag = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setIsDragging(true);
+    } else if (e.type === 'dragleave') {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const droppedFile = e.dataTransfer?.files?.[0];
+    if (droppedFile) {
+      const ext = droppedFile.name.split('.').pop().toLowerCase();
+      if (['csv', 'xlsx', 'xls'].includes(ext)) {
+        setUploadFile(droppedFile);
+      } else {
+        toast.error('Only CSV and Excel files are supported');
+      }
+    }
+  }, []);
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadFile(file);
+    }
+  };
+
+  const downloadTemplate = async () => {
+    try {
+      const response = await api.get('/alcohol/template', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'alcohol_import_template.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Template downloaded!');
+    } catch (error) {
+      toast.error('Failed to download template');
+    }
+  };
+
+  const handleBulkUpload = async () => {
+    if (!uploadFile) return;
+    
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', uploadFile);
+      
+      const response = await api.post('/alcohol/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      setBatchResult(response.data);
+      toast.success(`Processed ${response.data.successful} items successfully!`);
+      setUploadFile(null);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const exportBatch = async (batchId) => {
+    try {
+      const response = await api.get(`/alcohol/batches/${batchId}/export`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `alcohol_batch_${batchId.slice(0, 8)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Batch exported!');
+    } catch (error) {
+      toast.error('Export failed');
+    }
   };
 
   return (
