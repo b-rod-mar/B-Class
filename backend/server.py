@@ -2245,6 +2245,9 @@ class VehicleCalculationRequest(BaseModel):
     is_first_time_owner: bool = False
     qualifies_for_concession: bool = False
     concession_type: Optional[str] = None  # "first_vehicle", "returning_resident", "disabled", etc.
+    # Environmental levy options
+    is_antique: bool = False  # For antique/vintage vehicles
+    num_tires: int = 4  # Number of used tires (for tire levy)
 
 class VehicleCalculationResult(BaseModel):
     id: str
