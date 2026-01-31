@@ -240,6 +240,11 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Terms of Use Footer */}
+      <div className="flex items-center justify-center pt-4 border-t border-border">
+        <TermsOfUse />
+      </div>
     </div>
   );
 }
