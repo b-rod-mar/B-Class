@@ -171,7 +171,7 @@ export default function RegisterPage() {
                 <div className="flex items-start gap-2 pt-1">
                   <AlertTriangle className="h-3.5 w-3.5 text-amber-400 mt-0.5 flex-shrink-0" />
                   <p className="text-[10px] text-amber-400/80 leading-tight">
-                    Store this code securely. It's required to update your account information or recover access. We cannot retrieve it if lost.
+                    Store this code securely. It&apos;s required to update your account information or recover access. We cannot retrieve it if lost.
                   </p>
                 </div>
               </div>

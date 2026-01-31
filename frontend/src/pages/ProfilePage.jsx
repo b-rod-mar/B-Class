@@ -590,7 +590,7 @@ export default function ProfilePage() {
               <div className="flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-400 mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-amber-400/80">
-                  Store your new secret code securely. It's required for all account security changes and cannot be retrieved if lost.
+                  Store your new secret code securely. It&apos;s required for all account security changes and cannot be retrieved if lost.
                 </p>
               </div>
             </div>
