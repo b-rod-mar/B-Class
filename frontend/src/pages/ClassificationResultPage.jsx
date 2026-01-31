@@ -399,10 +399,16 @@ export default function ClassificationResultPage() {
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    HS Code
-                    <Link to="/hs-library" target="_blank" className="text-primary hover:underline">
+                  <label className="text-sm font-medium flex items-center justify-between">
+                    <span>HS Code</span>
+                    <Link 
+                      to="/hs-library" 
+                      target="_blank" 
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                      data-testid="search-hs-library-link"
+                    >
                       <BookOpen className="h-3.5 w-3.5" />
+                      Search HS Library
                     </Link>
                   </label>
                   <HSCodeAutoSuggest
@@ -432,6 +438,7 @@ export default function ClassificationResultPage() {
                     <option value="auto_approved">Auto Approved</option>
                     <option value="needs_review">Needs Review</option>
                     <option value="reviewed">Reviewed</option>
+                    <option value="user_updated">User Updated</option>
                     <option value="rejected">Rejected</option>
                   </select>
                 </div>
