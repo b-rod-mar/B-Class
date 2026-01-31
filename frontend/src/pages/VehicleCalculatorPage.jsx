@@ -191,6 +191,24 @@ export default function VehicleCalculatorPage() {
     setShowHistory(false);
   };
 
+  const handleDeleteCalculation = async (calcId) => {
+    if (!window.confirm('Are you sure you want to delete this calculation?')) return;
+    
+    setDeleting(calcId);
+    try {
+      await api.delete(`/vehicle/calculations/${calcId}`);
+      toast.success('Calculation deleted');
+      fetchHistory();
+      if (result?.id === calcId) {
+        setResult(null);
+      }
+    } catch (error) {
+      toast.error('Failed to delete calculation');
+    } finally {
+      setDeleting(null);
+    }
+  };
+
   // Bulk upload handlers
   const handleDrag = useCallback((e) => {
     e.preventDefault();
