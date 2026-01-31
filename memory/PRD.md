@@ -204,6 +204,8 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - `POST /api/vehicle/calculate` - Calculate single vehicle duties
 - `GET /api/vehicle/calculations` - List calculation history
 - `GET /api/vehicle/calculations/{id}` - Get specific calculation
+- `GET /api/vehicle/calculations/{id}/invoice` - Generate Excel invoice
+- `DELETE /api/vehicle/calculations/{id}` - Delete calculation
 - `GET /api/vehicle/rates` - Get current duty rates
 - `GET /api/vehicle/template` - Download bulk upload template
 - `POST /api/vehicle/upload` - Bulk vehicle upload and calculation
@@ -211,6 +213,24 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - `GET /api/vehicle/batches/{id}` - Get batch details
 - `GET /api/vehicle/batches/{id}/export` - Export batch results
 - `GET /api/vehicle/checklist` - Get clearance checklist
+
+### Invoice & Export Features (Jan 31, 2026)
+- [x] **Generate Invoice (Vehicle)** - Excel export with complete duty breakdown
+- [x] **Generate Invoice (Alcohol)** - Excel export with product and duty details
+- [x] **Invoice Disclaimer** - Includes "estimate only" disclaimer and generation timestamp
+
+### Terms of Use (Jan 31, 2026)
+- [x] **Dashboard Integration** - Terms of Use button at dashboard footer
+- [x] **Estimates Disclaimer** - "informational purposes only"
+- [x] **No Guarantee of Classification** - "sole responsibility of user/broker"
+- [x] **Non-Affiliation** - "not affiliated with or endorsed by Bahamas Customs"
+- [x] **Limitation of Liability** - "do so at their own risk"
+- [x] **Official Resources** - Links to Bahamas Customs website, phone, email
+
+### Environmental Levy UI Improvements (Jan 31, 2026)
+- [x] **Quick-Apply Buttons** - Antique ($200) and Over 10 Years (20%) buttons
+- [x] **Auto-Detection Warning** - Shows when vehicle >10 years old
+- [x] **Antique Auto-Fill** - Suggests vintage year when antique selected
 
 ### Design
 - Dark mode with Electric Teal (#2DD4BF) accents
