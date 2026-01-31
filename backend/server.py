@@ -483,6 +483,168 @@ async def login(credentials: UserLogin):
 async def get_me(user: dict = Depends(get_current_user)):
     return {"id": user["id"], "email": user["email"], "name": user["name"], "role": user.get("role", UserRole.USER)}
 
+# ============= USER PROFILE MANAGEMENT =============
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    company: Optional[str] = None
+    secret_code: str  # Required for verification
+
+class EmailUpdate(BaseModel):
+    new_email: EmailStr
+    secret_code: str  # Required for verification
+
+class PasswordUpdate(BaseModel):
+    current_password: Optional[str] = None  # Optional if using secret_code
+    new_password: str
+    secret_code: str  # Required for verification
+
+class SecretCodeReset(BaseModel):
+    email: EmailStr
+    secret_code: str
+    new_password: str
+
+@api_router.get("/auth/profile")
+async def get_profile(user: dict = Depends(get_current_user)):
+    """Get full user profile"""
+    full_user = await db.users.find_one({"id": user["id"]}, {"_id": 0, "password": 0, "secret_code": 0})
+    if not full_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return full_user
+
+@api_router.put("/auth/profile")
+async def update_profile(update_data: ProfileUpdate, user: dict = Depends(get_current_user)):
+    """Update user profile (requires secret_code verification)"""
+    # Verify secret code
+    full_user = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    if not full_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if not verify_password(update_data.secret_code, full_user.get("secret_code", "")):
+        raise HTTPException(status_code=403, detail="Invalid Account Secret Code")
+    
+    # Build update document
+    update_doc = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    if update_data.name is not None:
+        update_doc["name"] = update_data.name
+    if update_data.company is not None:
+        update_doc["company"] = update_data.company
+    
+    await db.users.update_one({"id": user["id"]}, {"$set": update_doc})
+    
+    # Return updated user
+    updated_user = await db.users.find_one({"id": user["id"]}, {"_id": 0, "password": 0, "secret_code": 0})
+    return {"message": "Profile updated successfully", "user": updated_user}
+
+@api_router.put("/auth/email")
+async def update_email(update_data: EmailUpdate, user: dict = Depends(get_current_user)):
+    """Update user email address (requires secret_code verification)"""
+    # Verify secret code
+    full_user = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    if not full_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if not verify_password(update_data.secret_code, full_user.get("secret_code", "")):
+        raise HTTPException(status_code=403, detail="Invalid Account Secret Code")
+    
+    # Check if new email is already in use
+    existing = await db.users.find_one({"email": update_data.new_email, "id": {"$ne": user["id"]}})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already in use by another account")
+    
+    # Update email
+    await db.users.update_one(
+        {"id": user["id"]}, 
+        {"$set": {
+            "email": update_data.new_email,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Generate new token with updated email
+    new_token = create_token(user["id"], update_data.new_email, user.get("role", UserRole.USER))
+    
+    return {"message": "Email updated successfully", "token": new_token, "email": update_data.new_email}
+
+@api_router.put("/auth/password")
+async def update_password(update_data: PasswordUpdate, user: dict = Depends(get_current_user)):
+    """Update user password (requires secret_code verification)"""
+    # Verify secret code
+    full_user = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    if not full_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if not verify_password(update_data.secret_code, full_user.get("secret_code", "")):
+        raise HTTPException(status_code=403, detail="Invalid Account Secret Code")
+    
+    # Optionally verify current password if provided
+    if update_data.current_password:
+        if not verify_password(update_data.current_password, full_user["password"]):
+            raise HTTPException(status_code=403, detail="Current password is incorrect")
+    
+    # Update password
+    await db.users.update_one(
+        {"id": user["id"]}, 
+        {"$set": {
+            "password": hash_password(update_data.new_password),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Password updated successfully"}
+
+@api_router.put("/auth/secret-code")
+async def update_secret_code(
+    current_secret: str = Body(...),
+    new_secret: str = Body(...),
+    user: dict = Depends(get_current_user)
+):
+    """Update Account Secret Code (requires current secret_code)"""
+    # Validate new secret code
+    if not new_secret.isdigit() or len(new_secret) < 4 or len(new_secret) > 6:
+        raise HTTPException(status_code=400, detail="New secret code must be 4-6 digits")
+    
+    # Verify current secret code
+    full_user = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    if not full_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if not verify_password(current_secret, full_user.get("secret_code", "")):
+        raise HTTPException(status_code=403, detail="Invalid current Account Secret Code")
+    
+    # Update secret code
+    await db.users.update_one(
+        {"id": user["id"]}, 
+        {"$set": {
+            "secret_code": hash_password(new_secret),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Account Secret Code updated successfully"}
+
+@api_router.post("/auth/recover-with-code")
+async def recover_with_secret_code(recovery_data: SecretCodeReset):
+    """Reset password using email + secret code (alternative to email link)"""
+    user = await db.users.find_one({"email": recovery_data.email}, {"_id": 0})
+    
+    if not user:
+        # Don't reveal if email exists
+        raise HTTPException(status_code=400, detail="Invalid email or secret code")
+    
+    if not verify_password(recovery_data.secret_code, user.get("secret_code", "")):
+        raise HTTPException(status_code=400, detail="Invalid email or secret code")
+    
+    # Update password
+    await db.users.update_one(
+        {"email": recovery_data.email}, 
+        {"$set": {
+            "password": hash_password(recovery_data.new_password),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Password reset successfully. You can now log in with your new password."}
+
 # ============= PASSWORD RESET =============
 class PasswordResetRequest(BaseModel):
     email: EmailStr
