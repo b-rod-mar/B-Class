@@ -670,6 +670,51 @@ export default function VehicleCalculatorPage() {
                   )}
                 </div>
 
+                {/* Vehicle Age & Environmental Levy Options */}
+                <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg space-y-3">
+                  <h4 className="text-sm font-medium text-amber-400 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    Environmental Levy Options
+                  </h4>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="is_antique">Antique/Vintage Vehicle?</Label>
+                      <p className="text-xs text-muted-foreground">Classic cars requiring special approval ($200 flat levy)</p>
+                    </div>
+                    <Switch
+                      id="is_antique"
+                      checked={formData.is_antique}
+                      onCheckedChange={(checked) => setFormData({ ...formData, is_antique: checked })}
+                      data-testid="antique-switch"
+                    />
+                  </div>
+                  
+                  {!formData.is_new && (
+                    <div className="space-y-2">
+                      <Label htmlFor="num_tires">Number of Used Tires</Label>
+                      <p className="text-xs text-muted-foreground">$5 levy per used tire imported on vehicle</p>
+                      <Select 
+                        value={formData.num_tires?.toString()} 
+                        onValueChange={(value) => setFormData({ ...formData, num_tires: parseInt(value) })}
+                      >
+                        <SelectTrigger data-testid="num-tires-select">
+                          <SelectValue placeholder="Select tire count" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">0 (No used tires)</SelectItem>
+                          <SelectItem value="4">4 (Standard)</SelectItem>
+                          <SelectItem value="5">5 (With spare)</SelectItem>
+                          <SelectItem value="6">6 (Dual rear)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
+                  <p className="text-[10px] text-muted-foreground">
+                    Note: Vehicles over 10 years old incur 20% Environmental Levy and require Ministry of Finance approval.
+                  </p>
+                </div>
+
                 {/* Action Buttons */}
                 <div className="flex gap-3 pt-4">
                   <Button 
