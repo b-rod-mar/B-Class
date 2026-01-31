@@ -504,6 +504,13 @@ async def login(credentials: UserLogin):
     if not user or not verify_password(credentials.password, user["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
+    # Check account status
+    account_status = user.get("account_status", AccountStatus.ACTIVE)
+    if account_status == AccountStatus.DEACTIVATED:
+        raise HTTPException(status_code=401, detail="Account has been deactivated")
+    if account_status == AccountStatus.SUSPENDED:
+        raise HTTPException(status_code=401, detail="Account is suspended. Please contact administrator.")
+    
     token = create_token(user["id"], user["email"], user.get("role", UserRole.USER))
     return {
         "token": token, 
@@ -511,13 +518,25 @@ async def login(credentials: UserLogin):
             "id": user["id"], 
             "email": user["email"], 
             "name": user["name"],
-            "role": user.get("role", UserRole.USER)
+            "role": user.get("role", UserRole.USER),
+            "admin_access_level": user.get("admin_access_level"),
+            "must_change_password": user.get("must_change_password", False),
+            "must_set_secret_code": user.get("must_set_secret_code", False)
         }
     }
 
 @api_router.get("/auth/me", response_model=dict)
 async def get_me(user: dict = Depends(get_current_user)):
-    return {"id": user["id"], "email": user["email"], "name": user["name"], "role": user.get("role", UserRole.USER)}
+    full_user = await db.users.find_one({"id": user["id"]}, {"_id": 0, "password": 0, "secret_code": 0})
+    return {
+        "id": full_user["id"], 
+        "email": full_user["email"], 
+        "name": full_user["name"], 
+        "role": full_user.get("role", UserRole.USER),
+        "admin_access_level": full_user.get("admin_access_level"),
+        "must_change_password": full_user.get("must_change_password", False),
+        "must_set_secret_code": full_user.get("must_set_secret_code", False)
+    }
 
 # ============= USER PROFILE MANAGEMENT =============
 class ProfileUpdate(BaseModel):
