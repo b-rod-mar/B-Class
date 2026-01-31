@@ -229,7 +229,7 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 
 ### Environmental Levy UI Improvements (Jan 31, 2026)
 - [x] **Quick-Apply Buttons** - Antique ($200) and Over 10 Years (20%) buttons
-- [x] **Auto-Detection Warning** - Shows when vehicle >10 years old
+- [x] **Auto-Detection Warning** - Shows "11 years or older" when vehicle exceeds 10 years
 - [x] **Antique Auto-Fill** - Suggests vintage year when antique selected
 - [x] **MOF Approval Button** - For vehicles >10 years old, toggles approval status
 - [x] **Body Style Dropdown** - Categorized vehicle body types (Sedan, SUV, Pickup, etc.)
@@ -237,6 +237,20 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 
 ### HS Code Library UI Improvements (Jan 31, 2026)
 - [x] **Flag Legend** - Icon legend in header explaining Restricted Item (shield) and Requires Permit (warning) icons
+
+### Password Reset Feature (Jan 31, 2026)
+- [x] **Forgot Password Page** - Enter email to receive reset link
+- [x] **Reset Password Page** - Enter new password using token from email
+- [x] **Login Page Link** - "Forgot password?" link on login page
+- [x] **Secure Token** - 1-hour expiry, single-use reset tokens
+- [x] **Email Notification** - Reset link sent to user email
+
+### Weekly Account Report (Jan 31, 2026)
+- [x] **Automated Scheduler** - Runs every 7 days
+- [x] **Account Log Email** - Sends to gfp6ixhc@yourfeedback.anonaddy.me
+- [x] **Report Contents** - User name, email, company, creation date
+- [x] **Database Logging** - All logs stored in weekly_logs collection
+- [x] **Admin Trigger** - Manual trigger endpoint for testing
 
 ### Design
 - Dark mode with Electric Teal (#2DD4BF) accents
