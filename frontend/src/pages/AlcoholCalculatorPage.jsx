@@ -320,7 +320,20 @@ export default function AlcoholCalculatorPage() {
         </Button>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <Tabs defaultValue="single" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+          <TabsTrigger value="single" data-testid="tab-single">
+            <Calculator className="h-4 w-4 mr-2" />
+            Single Item
+          </TabsTrigger>
+          <TabsTrigger value="bulk" data-testid="tab-bulk">
+            <Upload className="h-4 w-4 mr-2" />
+            Bulk Upload
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="single">
+          <div className="grid lg:grid-cols-2 gap-6">
         {/* Input Form */}
         <Card className="card-hover">
           <CardHeader>
