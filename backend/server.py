@@ -92,9 +92,10 @@ class HSCodeCreate(HSCodeBase):
 
 class HSCodeResponse(HSCodeBase):
     id: str
-    created_at: datetime
+    created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     created_by: Optional[str] = None
+    source: Optional[str] = None
 
 class ClassificationItemBase(BaseModel):
     original_description: str
