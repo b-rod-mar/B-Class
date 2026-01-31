@@ -250,8 +250,6 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [ ] Real-time duty rate API integration
 
 ## Next Tasks
-1. Finalize NotationsPage.jsx UI (currently a scaffold)
-2. Add HS Library search link from classification item edit dialog
-3. Create downloadable Alcohol Calculation PDF guide
-4. Implement PDF extraction with AI (FileContentWithMimeType + Gemini)
-5. Create admin dashboard for user management
+1. Add manual entry option (single item form) to calculators alongside bulk upload
+2. Implement PDF invoice extraction with AI
+3. Create admin dashboard for user management
