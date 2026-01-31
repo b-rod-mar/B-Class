@@ -128,6 +128,77 @@ export default function HSLibraryPage() {
     setIsNew(false);
   };
 
+  // Import handlers
+  const handleDrag = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setIsDragging(true);
+    } else if (e.type === 'dragleave') {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (['csv', 'xlsx', 'xls'].includes(ext)) {
+        setImportFile(file);
+      } else {
+        toast.error('Only CSV and Excel files are supported');
+      }
+    }
+  }, []);
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) setImportFile(file);
+  };
+
+  const downloadImportTemplate = async () => {
+    try {
+      const response = await api.get('/hs-codes/import-template', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'hs_codes_import_template.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Template downloaded!');
+    } catch (error) {
+      toast.error('Failed to download template');
+    }
+  };
+
+  const handleImport = async () => {
+    if (!importFile) return;
+    setImporting(true);
+    setImportResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', importFile);
+      
+      const response = await api.post('/hs-codes/import', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      setImportResult(response.data);
+      toast.success(`Imported ${response.data.imported} new codes, updated ${response.data.updated}`);
+      setImportFile(null);
+      await fetchHSCodes();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Import failed');
+    } finally {
+      setImporting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
