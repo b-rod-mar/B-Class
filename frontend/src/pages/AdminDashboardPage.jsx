@@ -430,6 +430,17 @@ export default function AdminDashboardPage() {
                                 <UserCheck className="h-4 w-4" />
                               </Button>
                             )}
+                            {u.role !== 'super_admin' && (
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => { setSelectedUser(u); setDeleteUserOpen(true); }}
+                                className="text-rose-500 hover:text-rose-400 hover:bg-rose-500/10"
+                                data-testid={`delete-user-${u.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
