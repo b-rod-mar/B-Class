@@ -611,12 +611,6 @@ COUNTRY_CODES = [
     {"code": "FJ", "alpha3": "FJI", "name": "Fiji", "calling_code": "+679", "region": "Oceania", "trade_agreement": None, "notes": "Standard duty rates apply"},
     {"code": "PG", "alpha3": "PNG", "name": "Papua New Guinea", "calling_code": "+675", "region": "Oceania", "trade_agreement": None, "notes": "Standard duty rates apply"},
 ]
-    {"code": "MA", "alpha3": "MAR", "name": "Morocco", "region": "Africa", "trade_agreement": None, "notes": "Standard duty rates apply"},
-    
-    # Oceania
-    {"code": "AU", "alpha3": "AUS", "name": "Australia", "region": "Oceania", "trade_agreement": None, "notes": "Commonwealth member"},
-    {"code": "NZ", "alpha3": "NZL", "name": "New Zealand", "region": "Oceania", "trade_agreement": None, "notes": "Commonwealth member"},
-]
 
 async def seed_customs_forms():
     """Seed the customs forms collection"""
