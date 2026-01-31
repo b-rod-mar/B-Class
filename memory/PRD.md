@@ -308,3 +308,14 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] Added Reset Password page (new password entry with token)
 - [x] Added "Forgot password?" link to Login page
 - [x] Implemented weekly account creation log (auto-emails to admin)
+
+### Alcohol Calculator Enhancements (Jan 31, 2026)
+- [x] **Download Guide PDF** - "Download Guide" button next to "View History"
+- [x] **PDF Content** - Duty rates, excise calculations, LPA formula, VAT, license fees
+- [x] **Example Calculation** - Step-by-step example with 12 bottles of rum
+- [x] **Auto-download** - Generates and downloads PDF instantly on click
+
+### Vehicle Calculator Enhancements (Jan 31, 2026)
+- [x] **Country Dropdown** - Select dropdown with all 195 recognized countries
+- [x] **Popular Countries** - Quick access to Japan, USA, Germany, South Korea, China, etc.
+- [x] **A-Z Full List** - Scrollable list of all countries alphabetically
