@@ -111,7 +111,7 @@ How can I assist you today?`
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary shadow-lg hover:bg-primary/90 transition-all duration-300 hover:scale-110 flex items-center justify-center group"
+          className="fixed bottom-24 right-6 z-50 w-14 h-14 rounded-full bg-primary shadow-lg hover:bg-primary/90 transition-all duration-300 hover:scale-110 flex items-center justify-center group"
           data-testid="classi-chat-toggle"
         >
           <div className="relative">
@@ -130,8 +130,8 @@ How can I assist you today?`
           className={cn(
             "fixed z-50 shadow-2xl border border-border/50 transition-all duration-300",
             isMinimized 
-              ? "bottom-6 right-6 w-72 h-14" 
-              : "bottom-6 right-6 w-96 h-[600px] max-h-[80vh]"
+              ? "bottom-24 right-6 w-72 h-14" 
+              : "bottom-24 right-6 w-96 h-[550px] max-h-[75vh]"
           )}
           data-testid="classi-chat-window"
         >
