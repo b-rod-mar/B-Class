@@ -344,14 +344,30 @@ export default function ClassificationResultPage() {
                         </div>
                       </td>
                       <td>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => handleEditItem(item, index)}
-                          data-testid={`edit-item-${index}`}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleEditItem(item, index)}
+                            data-testid={`edit-item-${index}`}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                            onClick={() => handleDeleteItem(index)}
+                            disabled={deletingItem === index}
+                            data-testid={`delete-item-${index}`}
+                          >
+                            {deletingItem === index ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <X className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
