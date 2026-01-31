@@ -256,12 +256,12 @@ export default function ClassificationResultPage() {
             <p className="text-xs text-amber-400/70 uppercase tracking-wider">Needs Review</p>
           </CardContent>
         </Card>
-        <Card className="bg-yellow-500/10 border-yellow-500/20">
+        <Card className="bg-purple-500/10 border-purple-500/20">
           <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold font-['Chivo'] text-yellow-400">
+            <p className="text-3xl font-bold font-['Chivo'] text-purple-400">
               {classification.items.filter(item => item.review_status === 'user_updated').length}
             </p>
-            <p className="text-xs text-yellow-400/70 uppercase tracking-wider">User Updated</p>
+            <p className="text-xs text-purple-400/70 uppercase tracking-wider">User Updated</p>
           </CardContent>
         </Card>
         <Card className="bg-primary/10 border-primary/20">
