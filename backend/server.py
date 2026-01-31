@@ -57,6 +57,17 @@ class ReviewStatus(str, Enum):
 class UserRole(str, Enum):
     USER = "user"
     ADMIN = "admin"
+    SUPER_ADMIN = "super_admin"
+
+class AdminAccessLevel(str, Enum):
+    FULL = "full"  # Full access to all admin features
+    BROADCAST_ONLY = "broadcast_only"  # View + broadcast notifications only
+    VIEW_ONLY = "view_only"  # View only, can export data
+
+class AccountStatus(str, Enum):
+    ACTIVE = "active"
+    SUSPENDED = "suspended"
+    DEACTIVATED = "deactivated"
 
 # ============= MODELS =============
 class UserBase(BaseModel):
