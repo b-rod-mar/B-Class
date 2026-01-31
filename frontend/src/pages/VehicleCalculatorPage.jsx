@@ -1384,7 +1384,7 @@ export default function VehicleCalculatorPage() {
                 <CardContent className="p-4 text-xs text-muted-foreground">
                   <p className="font-medium text-foreground mb-2">Example Row:</p>
                   <code className="text-[10px] block bg-muted p-2 rounded overflow-x-auto">
-                    1HGBH41JXMN109186,Toyota,Camry,2023,gasoline,2500,35000,Japan,true,0,White
+                    1HGBH41JXMN109186,Toyota,Camry,2023,gasoline,sedan,2500,35000,Japan,true,0,White
                   </code>
                 </CardContent>
               </Card>
