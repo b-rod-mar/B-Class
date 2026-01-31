@@ -213,6 +213,27 @@ export default function TariffsDutiesPage() {
     rule.example.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredSections = TARIFF_SECTIONS.filter(section =>
+    section.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    section.section.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    section.chapters.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredExcise = EXCISE_DUTIES.map(category => ({
+    ...category,
+    items: category.items.filter(item =>
+      item.item.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.notes.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      category.category.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })).filter(category => category.items.length > 0);
+
+  const filteredExemptions = CHAPTER_98_EXEMPTIONS.filter(exemption =>
+    exemption.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    exemption.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    exemption.heading.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="space-y-6" data-testid="tariffs-duties-page">
       {/* Header */}
