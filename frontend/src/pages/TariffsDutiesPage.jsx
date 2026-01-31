@@ -613,26 +613,30 @@ export default function TariffsDutiesPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {DUTY_EXEMPTIONS.map((exemption, idx) => (
-                  <div key={idx} className="p-4 border rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                        {exemption.category}
-                      </Badge>
+              {filteredExemptions.length === 0 && searchQuery ? (
+                <p className="text-center text-muted-foreground py-8">No exemptions match "{searchQuery}"</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredExemptions.map((exemption, idx) => (
+                    <div key={idx} className="p-4 border rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                          {exemption.category}
+                        </Badge>
+                      </div>
+                      <ul className="text-sm space-y-1 mb-2">
+                        {exemption.items.map((item, itemIdx) => (
+                          <li key={itemIdx} className="flex items-center gap-2">
+                            <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="text-xs text-muted-foreground">{exemption.notes}</p>
                     </div>
-                    <ul className="text-sm space-y-1 mb-2">
-                      {exemption.items.map((item, itemIdx) => (
-                        <li key={itemIdx} className="flex items-center gap-2">
-                          <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                    <p className="text-xs text-muted-foreground">{exemption.notes}</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
