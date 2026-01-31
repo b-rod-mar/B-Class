@@ -227,9 +227,9 @@ export default function DashboardPage() {
         </Card>
         <Card className="card-hover bg-gradient-to-br from-amber-500/5 to-amber-500/10 border-amber-500/20">
           <CardContent className="p-6">
-            <h3 className="font-bold text-lg font-['Chivo'] mb-2">ASYCUDA Ready</h3>
+            <h3 className="font-bold text-lg font-['Chivo'] mb-2">Electronic Single Window Ready</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Export classifications in formats compatible with ASYCUDA World for seamless customs processing.
+              Export classifications in formats compatible with Electronic Single Window for seamless customs processing.
             </p>
             <div className="flex items-center gap-2 text-xs text-amber-400">
               <FileText className="h-4 w-4" />
