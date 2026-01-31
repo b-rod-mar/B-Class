@@ -66,6 +66,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    secret_code: str  # 4-6 digit numeric code for account recovery
 
 class UserLogin(BaseModel):
     email: EmailStr
