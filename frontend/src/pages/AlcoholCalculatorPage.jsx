@@ -666,6 +666,237 @@ export default function AlcoholCalculatorPage() {
           )}
         </div>
       </div>
+        </TabsContent>
+
+        {/* Bulk Upload Tab */}
+        <TabsContent value="bulk">
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Upload Section */}
+            <Card className="card-hover">
+              <CardHeader>
+                <CardTitle className="font-['Chivo'] flex items-center gap-2">
+                  <Upload className="h-5 w-5 text-primary" />
+                  Bulk Upload
+                </CardTitle>
+                <CardDescription>
+                  Upload a CSV or Excel file to calculate duties for multiple items at once
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Template Download */}
+                <div className="p-4 bg-muted/30 rounded-lg flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm">Download Template</p>
+                    <p className="text-xs text-muted-foreground">
+                      Get a pre-formatted CSV with sample data
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={downloadTemplate}
+                    data-testid="download-template-btn"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Template
+                  </Button>
+                </div>
+
+                {/* Dropzone */}
+                {!uploadFile ? (
+                  <div
+                    className={cn(
+                      "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200",
+                      isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                    )}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                    onClick={() => document.getElementById('bulk-file-input').click()}
+                    data-testid="bulk-dropzone"
+                  >
+                    <input
+                      id="bulk-file-input"
+                      type="file"
+                      className="hidden"
+                      accept=".csv,.xlsx,.xls"
+                      onChange={handleFileSelect}
+                    />
+                    <FileSpreadsheet className={cn(
+                      "h-10 w-10 mx-auto mb-3 transition-colors",
+                      isDragging ? "text-primary" : "text-muted-foreground"
+                    )} />
+                    <p className="font-medium mb-1">Drop your file here or click to browse</p>
+                    <p className="text-sm text-muted-foreground">
+                      Supports CSV, XLSX, XLS
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <FileSpreadsheet className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{uploadFile.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {(uploadFile.size / 1024).toFixed(1)} KB
+                        </p>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => setUploadFile(null)}
+                        data-testid="remove-bulk-file-btn"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <Button 
+                      onClick={handleBulkUpload}
+                      disabled={uploading}
+                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90 glow-teal"
+                      data-testid="process-bulk-btn"
+                    >
+                      {uploading ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4 mr-2" />
+                      )}
+                      Process & Calculate Duties
+                    </Button>
+                  </div>
+                )}
+
+                {/* Template Columns Info */}
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p className="font-medium text-foreground">Required columns:</p>
+                  <p>• product_name, alcohol_type, volume_ml, alcohol_percentage, quantity, cif_value</p>
+                  <p className="font-medium text-foreground mt-2">Optional columns:</p>
+                  <p>• country_of_origin, brand_label, has_liquor_license</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Batch Results */}
+            <div className="space-y-6">
+              {batchResult ? (
+                <Card className="border-primary/30 shadow-lg shadow-primary/10">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="font-['Chivo'] text-xl">Batch Results</CardTitle>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => exportBatch(batchResult.batch_id)}
+                        data-testid="export-batch-btn"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Export CSV
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Summary */}
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="p-3 bg-emerald-500/10 rounded-lg text-center">
+                        <p className="text-2xl font-bold text-emerald-400">{batchResult.successful}</p>
+                        <p className="text-xs text-emerald-400/70">Processed</p>
+                      </div>
+                      {batchResult.failed > 0 && (
+                        <div className="p-3 bg-rose-500/10 rounded-lg text-center">
+                          <p className="text-2xl font-bold text-rose-400">{batchResult.failed}</p>
+                          <p className="text-xs text-rose-400/70">Failed</p>
+                        </div>
+                      )}
+                      <div className="p-3 bg-primary/10 rounded-lg text-center col-span-full">
+                        <p className="text-2xl font-bold font-mono text-primary">
+                          {formatCurrency(batchResult.total_landed_cost)}
+                        </p>
+                        <p className="text-xs text-primary/70">Total Landed Cost</p>
+                      </div>
+                    </div>
+
+                    {/* Results Table */}
+                    <ScrollArea className="h-[350px]">
+                      <table className="w-full text-sm">
+                        <thead className="sticky top-0 bg-card">
+                          <tr className="border-b border-border">
+                            <th className="text-left py-2 px-2">#</th>
+                            <th className="text-left py-2 px-2">Product</th>
+                            <th className="text-left py-2 px-2">HS Code</th>
+                            <th className="text-right py-2 px-2">CIF</th>
+                            <th className="text-right py-2 px-2">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {batchResult.results.map((item, idx) => (
+                            <tr key={idx} className="border-b border-border/50 hover:bg-muted/30">
+                              <td className="py-2 px-2 text-muted-foreground">{item.row}</td>
+                              <td className="py-2 px-2">
+                                <div>
+                                  <p className="font-medium truncate max-w-[150px]">{item.product_name}</p>
+                                  <p className="text-xs text-muted-foreground">{item.alcohol_type}</p>
+                                </div>
+                              </td>
+                              <td className="py-2 px-2">
+                                <code className="text-xs bg-primary/10 px-1.5 py-0.5 rounded text-primary">
+                                  {item.hs_code}
+                                </code>
+                              </td>
+                              <td className="py-2 px-2 text-right font-mono text-muted-foreground">
+                                {formatCurrency(item.cif_value)}
+                              </td>
+                              <td className="py-2 px-2 text-right font-mono font-medium">
+                                {formatCurrency(item.total_landed_cost)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </ScrollArea>
+
+                    {/* Errors */}
+                    {batchResult.errors && batchResult.errors.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-rose-400">Errors:</p>
+                        {batchResult.errors.map((error, idx) => (
+                          <div key={idx} className="text-xs text-rose-400 bg-rose-500/10 p-2 rounded">
+                            Row {error.row}: {error.error}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="border-dashed">
+                  <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                    <FileSpreadsheet className="h-12 w-12 text-muted-foreground opacity-50 mb-4" />
+                    <p className="text-muted-foreground mb-2">No batch results yet</p>
+                    <p className="text-sm text-muted-foreground/70">
+                      Upload a CSV or Excel file to calculate duties for multiple items
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Quick Info */}
+              <Card className="bg-card/50">
+                <CardContent className="p-4 text-xs text-muted-foreground">
+                  <p className="font-medium text-foreground mb-2">Alcohol Types:</p>
+                  <p>wine, beer, spirits, liqueur, other</p>
+                  <p className="font-medium text-foreground mt-3 mb-2">Example Row:</p>
+                  <code className="text-[10px] block bg-muted p-2 rounded overflow-x-auto">
+                    Bacardi Rum,spirits,750,40,12,540,Puerto Rico,Bacardi,false
+                  </code>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* History Panel */}
       {showHistory && (
