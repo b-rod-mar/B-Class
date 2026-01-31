@@ -2537,8 +2537,25 @@ async def get_vehicle_calculation(calc_id: str, user: dict = Depends(get_current
 @api_router.get("/vehicle/rates")
 async def get_vehicle_rates(user: dict = Depends(get_current_user)):
     """Get current vehicle duty rates"""
+    # Create a JSON-serializable copy of rates (replace infinity with None/large number)
+    serializable_rates = {}
+    for vehicle_type, info in VEHICLE_DUTY_RATES.items():
+        serializable_rates[vehicle_type] = {
+            "hs_code": info["hs_code"],
+            "hs_description": info["hs_description"],
+            "tiers": []
+        }
+        for tier in info["tiers"]:
+            safe_tier = {}
+            for key, value in tier.items():
+                if value == float('inf'):
+                    safe_tier[key] = None  # Replace infinity with None
+                else:
+                    safe_tier[key] = value
+            serializable_rates[vehicle_type]["tiers"].append(safe_tier)
+    
     return {
-        "rates": VEHICLE_DUTY_RATES,
+        "rates": serializable_rates,
         "vat_rate": VEHICLE_VAT_RATE,
         "environmental_levy_rate": ENVIRONMENTAL_LEVY_RATE,
         "stamp_duty_rate": STAMP_DUTY_RATE,
