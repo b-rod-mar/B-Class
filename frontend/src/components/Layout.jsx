@@ -108,8 +108,8 @@ export default function Layout() {
             ))}
           </nav>
 
-          {/* User section */}
-          <div className="p-4 border-t border-border">
+          {/* User section - fixed at bottom */}
+          <div className="flex-shrink-0 p-4 border-t border-border">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
                 <span className="text-sm font-medium">
@@ -135,7 +135,7 @@ export default function Layout() {
             </div>
           </div>
           
-          {/* Disclaimer */}
+          {/* Disclaimer - fixed at very bottom */}
           <DisclaimerBanner />
         </div>
       </aside>
