@@ -14,7 +14,8 @@ import {
   Scale,
   FileText,
   Globe,
-  StickyNote
+  StickyNote,
+  Calculator
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useState } from 'react';
@@ -25,6 +26,7 @@ const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/upload', label: 'Upload & Classify', icon: Upload },
   { path: '/alcohol-calculator', label: 'Alcohol Calculator', icon: Wine },
+  { path: '/tariffs', label: 'Tariffs & Duties', icon: Calculator },
   { path: '/history', label: 'Classification History', icon: History },
   { path: '/hs-library', label: 'HS Code Library', icon: BookOpen },
   { path: '/cma-guide', label: 'CMA Reference', icon: Scale },
