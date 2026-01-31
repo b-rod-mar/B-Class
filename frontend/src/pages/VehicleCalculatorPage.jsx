@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -300,6 +301,9 @@ export default function VehicleCalculatorPage() {
                   <ClipboardList className="h-5 w-5 text-primary" />
                   Vehicle Clearance Checklist
                 </DialogTitle>
+                <DialogDescription>
+                  Documents and procedures required for vehicle customs clearance in The Bahamas
+                </DialogDescription>
               </DialogHeader>
               {checklist && (
                 <div className="space-y-6 mt-4">
