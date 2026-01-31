@@ -50,12 +50,89 @@ import {
 import { toast } from 'sonner';
 import { cn, formatCurrency, formatDate } from '../lib/utils';
 
+// Fuel/Duty Type - determines duty rate
 const VEHICLE_TYPES = [
   { value: 'electric', label: 'Electric Vehicle', icon: Zap, description: '10-25% based on value' },
   { value: 'hybrid', label: 'Hybrid Vehicle', icon: Zap, description: '10-25% based on value' },
   { value: 'gasoline', label: 'Gasoline (Petrol)', icon: Fuel, description: '45-65% based on engine & value' },
   { value: 'diesel', label: 'Diesel', icon: Fuel, description: '45-65% based on engine & value' },
   { value: 'commercial', label: 'Commercial / Heavy', icon: Truck, description: '65-85% trucks & equipment' }
+];
+
+// Body Style Categories
+const BODY_STYLE_CATEGORIES = [
+  {
+    category: 'Passenger Vehicles',
+    styles: [
+      { value: 'sedan', label: 'Sedan / Saloon', description: 'Standard 4-door passenger car' },
+      { value: 'hatchback', label: 'Hatchback', description: 'Passenger car with rear hatch door' },
+      { value: 'suv', label: 'SUV (Sport Utility Vehicle)', description: 'Higher ground clearance, off-road capability' },
+      { value: 'crossover', label: 'Crossover (CUV)', description: 'SUV-like, built on car platform' },
+      { value: 'coupe', label: 'Coupe', description: '2-door sporty car' },
+      { value: 'convertible', label: 'Convertible / Cabriolet', description: 'Retractable roof' },
+      { value: 'wagon', label: 'Station Wagon / Estate', description: 'Extended cargo area in passenger car' },
+      { value: 'minivan', label: 'Minivan / MPV', description: 'Family people mover' },
+      { value: 'roadster', label: 'Roadster', description: 'Small 2-seater sports car' },
+      { value: 'luxury', label: 'Luxury Car', description: 'High-end brand vehicle' },
+    ]
+  },
+  {
+    category: 'Commercial / Utility Vehicles',
+    styles: [
+      { value: 'pickup', label: 'Pickup Truck / Light Truck', description: 'Open cargo bed, light-duty' },
+      { value: 'cargo_van', label: 'Van / Cargo Van', description: 'Enclosed cargo, may carry goods' },
+      { value: 'panel_van', label: 'Panel Van', description: 'Van with no rear side windows' },
+      { value: 'box_truck', label: 'Box Truck / Straight Truck', description: 'Larger cargo box, light-medium duty' },
+      { value: 'reefer', label: 'Refrigerated Truck / Reefer', description: 'Temperature-controlled cargo' },
+      { value: 'flatbed', label: 'Flatbed Truck', description: 'Open cargo flatbed' },
+      { value: 'dump_truck', label: 'Dump Truck', description: 'Tipping cargo bed for construction' },
+      { value: 'tanker', label: 'Tanker Truck', description: 'Carries liquids or gases' },
+      { value: 'tow_truck', label: 'Tow Truck / Wrecker', description: 'Vehicle recovery' },
+      { value: 'ambulance', label: 'Ambulance', description: 'Emergency medical transport' },
+    ]
+  },
+  {
+    category: 'Buses',
+    styles: [
+      { value: 'bus', label: 'Bus / Coach', description: 'Full-size passenger transport' },
+      { value: 'mini_bus', label: 'Mini Bus / Shuttle Bus', description: 'Smaller passenger bus' },
+      { value: 'school_bus', label: 'School Bus', description: 'Designed for student transport' },
+      { value: 'transit_bus', label: 'City / Transit Bus', description: 'Urban public transport' },
+    ]
+  },
+  {
+    category: 'Specialty / Recreational Vehicles',
+    styles: [
+      { value: 'motorhome', label: 'Motorhome / RV', description: 'Living quarters built-in' },
+      { value: 'camper', label: 'Camper Van / Caravan', description: 'Trailer for camping' },
+      { value: 'atv', label: 'ATV / Quad Bike', description: 'All-terrain recreational vehicle' },
+      { value: 'golf_cart', label: 'Golf Cart / Utility Cart', description: 'Small electric cart' },
+      { value: 'motorcycle', label: 'Motorcycle / Bike', description: 'Two-wheeled vehicle' },
+      { value: 'scooter', label: 'Scooter / Moped', description: 'Small engine, lightweight' },
+      { value: 'touring_motorcycle', label: 'Touring Motorcycle', description: 'Long-distance design' },
+      { value: 'sport_motorcycle', label: 'Sport Motorcycle', description: 'High-performance' },
+    ]
+  },
+  {
+    category: 'Heavy Vehicles / Industrial',
+    styles: [
+      { value: 'semi_tractor', label: 'Truck Tractor / Semi-Tractor', description: 'For pulling trailers' },
+      { value: 'trailer', label: 'Trailer', description: 'Cargo pulled by tractor' },
+      { value: 'lorry', label: 'Lorry / Freight Truck', description: 'Large commercial transport' },
+      { value: 'construction', label: 'Construction Equipment', description: 'Off-road trucks, tippers' },
+      { value: 'forklift', label: 'Forklift / Utility Vehicle', description: 'Warehouse or industrial use' },
+    ]
+  },
+  {
+    category: 'Specialized Vehicles',
+    styles: [
+      { value: 'fire_truck', label: 'Fire Truck / Fire Engine', description: 'Emergency services' },
+      { value: 'police', label: 'Police Vehicle / Patrol Car', description: 'Law enforcement' },
+      { value: 'paramedic', label: 'Paramedic Vehicle', description: 'Medical services' },
+      { value: 'snowmobile', label: 'Snowmobile / Ice Vehicle', description: 'Winter terrain' },
+      { value: 'military', label: 'Military / Armored Vehicle', description: 'Defense purposes' },
+    ]
+  }
 ];
 
 const ENGINE_SIZE_PRESETS = [
@@ -91,6 +168,7 @@ const initialFormState = {
   model: '',
   year: new Date().getFullYear(),
   vehicle_type: '',
+  body_style: '',
   engine_size_cc: null,
   cif_value: 0,
   country_of_origin: '',
