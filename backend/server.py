@@ -2502,6 +2502,8 @@ async def calculate_vehicle_duties(
     # Save to database
     await db.vehicle_calculations.insert_one(calculation)
     
+    # Remove MongoDB _id before returning (not JSON serializable)
+    calculation.pop("_id", None)
     calculation["created_at"] = datetime.fromisoformat(calculation["created_at"])
     return calculation
 
