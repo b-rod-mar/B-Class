@@ -1279,8 +1279,8 @@ async def get_alcohol_batch(batch_id: str, user: dict = Depends(get_current_user
     return batch
 
 @api_router.get("/alcohol/batches/{batch_id}/export")
-async def export_alcohol_batch(batch_id: str, user: dict = Depends(get_current_user)):
-    """Export batch calculation as CSV"""
+async def export_alcohol_batch(batch_id: str, format: str = "csv", user: dict = Depends(get_current_user)):
+    """Export batch calculation as CSV or Excel"""
     from fastapi.responses import StreamingResponse
     
     batch = await db.alcohol_batches.find_one(
@@ -1319,15 +1319,25 @@ async def export_alcohol_batch(batch_id: str, user: dict = Depends(get_current_u
     summary_row["Total Landed Cost"] = batch["total_landed_cost"]
     df = pd.concat([df, pd.DataFrame([summary_row])], ignore_index=True)
     
-    output = io.StringIO()
-    df.to_csv(output, index=False)
-    output.seek(0)
-    
-    return StreamingResponse(
-        iter([output.getvalue()]),
-        media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=alcohol_batch_{batch_id[:8]}.csv"}
-    )
+    if format == "xlsx":
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Alcohol Duties')
+        output.seek(0)
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename=alcohol_batch_{batch_id[:8]}.xlsx"}
+        )
+    else:
+        output = io.StringIO()
+        df.to_csv(output, index=False)
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=alcohol_batch_{batch_id[:8]}.csv"}
+        )
 
 # ============= ROOT ROUTE =============
 @api_router.get("/")

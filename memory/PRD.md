@@ -71,6 +71,10 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] Calculation history
 - [x] Export to printable PDF format
 - [x] Current Bahamas duty rates display
+- [x] **Bulk Upload** - CSV/Excel file upload for batch processing
+- [x] **Downloadable Template** - Pre-formatted CSV with sample data
+- [x] **Batch Results** - Summary view with totals and per-item breakdown
+- [x] **Batch Export** - Export processed batch as CSV
 
 ### Design
 - Dark mode with Electric Teal (#2DD4BF) accents
