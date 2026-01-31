@@ -810,9 +810,9 @@ export default function VehicleCalculatorPage() {
                     <p>• Gasoline/Diesel (&gt;2.0L): 65%</p>
                     <p>• Commercial: 65-85%</p>
                     <Separator className="my-2" />
-                    <p>• Environmental Levy: {rates.environmental_levy_rate * 100}%</p>
-                    <p>• Stamp Duty: {rates.stamp_duty_rate * 100}%</p>
-                    <p>• VAT: {rates.vat_rate * 100}%</p>
+                    <p>• Environmental Levy: {Math.round(rates.environmental_levy_rate * 100)}%</p>
+                    <p>• Stamp Duty: {Math.round(rates.stamp_duty_rate * 100)}%</p>
+                    <p>• VAT: {Math.round(rates.vat_rate * 100)}%</p>
                     <p>• Processing Fee: ${rates.processing_fee}</p>
                     <p className="pt-2 text-xs opacity-70">Last updated: {rates.last_updated}</p>
                   </CardContent>
