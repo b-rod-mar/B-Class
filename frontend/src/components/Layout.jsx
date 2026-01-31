@@ -109,7 +109,7 @@ export default function Layout() {
 
           {/* User section */}
           <div className="p-4 border-t border-border">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
                 <span className="text-sm font-medium">
                   {user?.name?.charAt(0).toUpperCase() || 'U'}
@@ -120,15 +120,18 @@ export default function Layout() {
                 <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
               </div>
             </div>
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start text-muted-foreground hover:text-destructive"
-              onClick={handleLogout}
-              data-testid="logout-btn"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
+            <div className="space-y-2">
+              <FeedbackDialog />
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start text-muted-foreground hover:text-destructive"
+                onClick={handleLogout}
+                data-testid="logout-btn"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </aside>
