@@ -111,6 +111,40 @@ export default function ClassificationResultPage() {
     }
   };
 
+  const handleDeleteClassification = async () => {
+    if (!window.confirm('Are you sure you want to delete this entire classification? This action cannot be undone.')) {
+      return;
+    }
+    
+    setDeleting(true);
+    try {
+      await api.delete(`/classifications/${id}`);
+      toast.success('Classification deleted');
+      navigate('/history');
+    } catch (error) {
+      toast.error('Failed to delete classification');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteItem = async (itemIndex) => {
+    if (!window.confirm('Are you sure you want to delete this item?')) {
+      return;
+    }
+    
+    setDeletingItem(itemIndex);
+    try {
+      await api.delete(`/classifications/${id}/items/${itemIndex}`);
+      toast.success('Item deleted');
+      await fetchClassification();
+    } catch (error) {
+      toast.error('Failed to delete item');
+    } finally {
+      setDeletingItem(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
