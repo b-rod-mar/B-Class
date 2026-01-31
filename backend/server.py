@@ -1639,6 +1639,188 @@ class CMARegulationResponse(BaseModel):
     keywords: List[str]
     created_at: datetime
 
+# ============= CUSTOMS FORMS MODULE =============
+class CustomsFormResponse(BaseModel):
+    id: str
+    form_number: str
+    form_name: str
+    category: str
+    description: str
+    usage: str
+    where_to_obtain: str
+    related_section: Optional[str] = None
+
+@api_router.get("/customs-forms", response_model=List[CustomsFormResponse])
+async def get_customs_forms(
+    search: Optional[str] = None,
+    category: Optional[str] = None,
+    user: dict = Depends(get_current_user)
+):
+    """Get Bahamas Customs forms list"""
+    query = {}
+    if search:
+        query["$or"] = [
+            {"form_number": {"$regex": search, "$options": "i"}},
+            {"form_name": {"$regex": search, "$options": "i"}},
+            {"description": {"$regex": search, "$options": "i"}}
+        ]
+    if category:
+        query["category"] = category
+    
+    forms = await db.customs_forms.find(query, {"_id": 0}).sort("form_number", 1).to_list(200)
+    return forms
+
+@api_router.get("/customs-forms/categories")
+async def get_forms_categories(user: dict = Depends(get_current_user)):
+    """Get customs form categories"""
+    categories = await db.customs_forms.distinct("category")
+    return {"categories": categories}
+
+# ============= COUNTRY CODES MODULE =============
+class CountryCodeResponse(BaseModel):
+    id: str
+    code: str
+    alpha3: str
+    name: str
+    region: str
+    trade_agreement: Optional[str] = None
+    notes: Optional[str] = None
+
+@api_router.get("/country-codes", response_model=List[CountryCodeResponse])
+async def get_country_codes(
+    search: Optional[str] = None,
+    region: Optional[str] = None,
+    user: dict = Depends(get_current_user)
+):
+    """Get country codes for customs declarations"""
+    query = {}
+    if search:
+        query["$or"] = [
+            {"code": {"$regex": search, "$options": "i"}},
+            {"alpha3": {"$regex": search, "$options": "i"}},
+            {"name": {"$regex": search, "$options": "i"}}
+        ]
+    if region:
+        query["region"] = region
+    
+    countries = await db.country_codes.find(query, {"_id": 0}).sort("name", 1).to_list(300)
+    return countries
+
+@api_router.get("/country-codes/regions")
+async def get_country_regions(user: dict = Depends(get_current_user)):
+    """Get country regions"""
+    regions = await db.country_codes.distinct("region")
+    return {"regions": regions}
+
+# ============= USER NOTATIONS MODULE =============
+class NotationCreate(BaseModel):
+    label: str
+    content: str  # Max 100 words enforced in validation
+    reference_type: str  # entry, tariff_code, general
+    reference_id: Optional[str] = None
+
+class NotationResponse(BaseModel):
+    id: str
+    user_id: str
+    label: str
+    content: str
+    reference_type: str
+    reference_id: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+@api_router.get("/notations", response_model=List[NotationResponse])
+async def get_notations(
+    reference_type: Optional[str] = None,
+    search: Optional[str] = None,
+    user: dict = Depends(get_current_user)
+):
+    """Get user's notations"""
+    query = {"user_id": user["id"]}
+    if reference_type:
+        query["reference_type"] = reference_type
+    if search:
+        query["$or"] = [
+            {"label": {"$regex": search, "$options": "i"}},
+            {"content": {"$regex": search, "$options": "i"}}
+        ]
+    
+    notations = await db.notations.find(query, {"_id": 0}).sort("created_at", -1).to_list(500)
+    
+    for note in notations:
+        if isinstance(note.get("created_at"), str):
+            note["created_at"] = datetime.fromisoformat(note["created_at"])
+        if isinstance(note.get("updated_at"), str):
+            note["updated_at"] = datetime.fromisoformat(note["updated_at"])
+    
+    return notations
+
+@api_router.post("/notations", response_model=NotationResponse)
+async def create_notation(notation: NotationCreate, user: dict = Depends(get_current_user)):
+    """Create a new notation"""
+    # Validate word count (max 100 words)
+    word_count = len(notation.content.split())
+    if word_count > 100:
+        raise HTTPException(status_code=400, detail=f"Content exceeds 100 word limit ({word_count} words)")
+    
+    if not notation.label.strip():
+        raise HTTPException(status_code=400, detail="Label is required")
+    
+    note_id = str(uuid.uuid4())
+    note_doc = {
+        "id": note_id,
+        "user_id": user["id"],
+        "label": notation.label.strip(),
+        "content": notation.content.strip(),
+        "reference_type": notation.reference_type,
+        "reference_id": notation.reference_id,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": None
+    }
+    
+    await db.notations.insert_one(note_doc)
+    note_doc["created_at"] = datetime.fromisoformat(note_doc["created_at"])
+    
+    return note_doc
+
+@api_router.put("/notations/{note_id}", response_model=NotationResponse)
+async def update_notation(note_id: str, notation: NotationCreate, user: dict = Depends(get_current_user)):
+    """Update a notation"""
+    existing = await db.notations.find_one({"id": note_id, "user_id": user["id"]}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Notation not found")
+    
+    word_count = len(notation.content.split())
+    if word_count > 100:
+        raise HTTPException(status_code=400, detail=f"Content exceeds 100 word limit ({word_count} words)")
+    
+    await db.notations.update_one(
+        {"id": note_id},
+        {"$set": {
+            "label": notation.label.strip(),
+            "content": notation.content.strip(),
+            "reference_type": notation.reference_type,
+            "reference_id": notation.reference_id,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    updated = await db.notations.find_one({"id": note_id}, {"_id": 0})
+    if isinstance(updated.get("created_at"), str):
+        updated["created_at"] = datetime.fromisoformat(updated["created_at"])
+    if isinstance(updated.get("updated_at"), str):
+        updated["updated_at"] = datetime.fromisoformat(updated["updated_at"])
+    
+    return updated
+
+@api_router.delete("/notations/{note_id}")
+async def delete_notation(note_id: str, user: dict = Depends(get_current_user)):
+    """Delete a notation"""
+    result = await db.notations.delete_one({"id": note_id, "user_id": user["id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Notation not found")
+    return {"message": "Notation deleted"}
+
 @api_router.get("/cma/search", response_model=List[CMARegulationResponse])
 async def search_cma_regulations(
     q: Optional[str] = None,
