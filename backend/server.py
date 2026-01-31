@@ -1914,7 +1914,7 @@ BAHAMAS_CUSTOMS_KNOWLEDGE = """
 - **C-18**: Warehouse Entry
 - **C-63**: Application for Duty Exemption
 - **C-78**: Application for Temporary Import Permit
-- **SAD (Single Administrative Document)**: ASYCUDA World format
+- **SAD (Single Administrative Document)**: Electronic Single Window format
 
 ### Duty Rates Overview
 - **0% (Free)**: Essential medicines, some raw materials, educational materials
@@ -1928,7 +1928,7 @@ BAHAMAS_CUSTOMS_KNOWLEDGE = """
 2. Register with Customs (get TIN - Taxpayer ID Number)
 3. Prepare commercial invoice, packing list, bill of lading
 4. Classify goods using correct HS codes
-5. Submit entry via ASYCUDA World or customs broker
+5. Submit entry via Electronic Single Window or customs broker
 6. Pay duties, VAT (10%), and processing fees
 7. Arrange for inspection if required
 8. Clear goods and collect from port
