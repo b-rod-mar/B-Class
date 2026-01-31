@@ -2329,11 +2329,52 @@ VEHICLE_DUTY_RATES = {
     }
 }
 
-# Additional fees
+# Additional fees (Bahamas Vehicle Import 2024)
 VEHICLE_VAT_RATE = 0.10  # 10% VAT
-ENVIRONMENTAL_LEVY_RATE = 0.01  # 1% Environmental Levy
-STAMP_DUTY_RATE = 0.07  # 7% Stamp Duty
-PROCESSING_FEE = 100.00  # Fixed processing fee
+# Environmental Levy - varies by vehicle age/type
+ENVIRONMENTAL_LEVY_NEW = 250.00  # Flat $250 for new/standard vehicles
+ENVIRONMENTAL_LEVY_OVER_10_YEARS = 0.20  # 20% of landed cost for vehicles >10 years old
+ENVIRONMENTAL_LEVY_ANTIQUE = 200.00  # $200 for antique/vintage vehicles
+TIRE_LEVY_PER_TIRE = 5.00  # $5 per used tire
+# Processing Fee: 1% of CIF, min $10, max $750
+PROCESSING_FEE_RATE = 0.01
+PROCESSING_FEE_MIN = 10.00
+PROCESSING_FEE_MAX = 750.00
+
+def calculate_processing_fee(cif_value: float) -> float:
+    """Calculate processing fee: 1% of CIF, min $10, max $750"""
+    fee = cif_value * PROCESSING_FEE_RATE
+    return max(PROCESSING_FEE_MIN, min(fee, PROCESSING_FEE_MAX))
+
+def calculate_environmental_levy(year: int, is_new: bool, is_antique: bool, cif_value: float, import_duty: float, num_tires: int = 4) -> tuple:
+    """Calculate environmental levy based on vehicle age and type"""
+    current_year = datetime.now().year
+    vehicle_age = current_year - year
+    
+    levy = 0.0
+    levy_description = ""
+    requires_approval = False
+    tire_levy = 0.0
+    
+    if is_antique:
+        levy = ENVIRONMENTAL_LEVY_ANTIQUE
+        levy_description = "Antique/Vintage Vehicle ($200 flat)"
+        requires_approval = True
+    elif vehicle_age > 10:
+        # 20% of landed cost (CIF + Duty) for vehicles over 10 years
+        landed_for_levy = cif_value + import_duty
+        levy = landed_for_levy * ENVIRONMENTAL_LEVY_OVER_10_YEARS
+        levy_description = f"Over 10 years old (20% of ${landed_for_levy:,.2f})"
+        requires_approval = True
+    else:
+        levy = ENVIRONMENTAL_LEVY_NEW
+        levy_description = "Standard Vehicle ($250 flat)"
+    
+    # Add tire levy for used vehicles
+    if not is_new and num_tires > 0:
+        tire_levy = num_tires * TIRE_LEVY_PER_TIRE
+    
+    return levy, levy_description, requires_approval, tire_levy
 
 def determine_vehicle_duty_rate(vehicle_type: str, engine_cc: Optional[int], cif_value: float) -> tuple:
     """Determine the applicable duty rate based on vehicle type, engine size, and value"""
