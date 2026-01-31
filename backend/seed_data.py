@@ -346,10 +346,181 @@ async def seed_cma_regulations():
     
     print(f"Seeded {len(CMA_REGULATIONS)} CMA regulations")
 
+# Bahamas Customs Forms
+CUSTOMS_FORMS = [
+    # Import Forms
+    {"form_number": "C78", "form_name": "Customs Declaration Form", "category": "Import", "description": "Primary import declaration form for all goods entering The Bahamas", "usage": "Required for all commercial and personal imports. Must be completed within 14 days of arrival.", "where_to_obtain": "Customs Department, ASYCUDA World", "related_section": "Section 15-20"},
+    {"form_number": "C79", "form_name": "Bill of Entry", "category": "Import", "description": "Detailed entry document for imported goods", "usage": "Used to formally enter goods for consumption, warehousing, or transit", "where_to_obtain": "Customs broker or ASYCUDA", "related_section": "Section 15"},
+    {"form_number": "C13", "form_name": "Delivery Order", "category": "Import", "description": "Authorization to release goods from customs control", "usage": "Issued after duty payment to allow goods collection", "where_to_obtain": "Customs Department after duty payment", "related_section": "Section 20"},
+    {"form_number": "C63", "form_name": "Single Administrative Document (SAD)", "category": "Import", "description": "Standardized customs declaration for ASYCUDA World", "usage": "Electronic declaration format for commercial imports", "where_to_obtain": "ASYCUDA World system", "related_section": "Section 80"},
+    {"form_number": "C88", "form_name": "Inward Report", "category": "Import", "description": "Vessel/aircraft arrival report", "usage": "Filed by carrier upon arrival with cargo manifest", "where_to_obtain": "Customs Department", "related_section": "Section 10"},
+    
+    # Export Forms
+    {"form_number": "C82", "form_name": "Export Declaration", "category": "Export", "description": "Declaration for goods being exported from The Bahamas", "usage": "Required for all commercial exports", "where_to_obtain": "Customs Department, ASYCUDA", "related_section": "Section 25"},
+    {"form_number": "C84", "form_name": "Outward Report", "category": "Export", "description": "Vessel/aircraft departure report", "usage": "Filed by carrier before departure", "where_to_obtain": "Customs Department", "related_section": "Section 12"},
+    
+    # Transit & Warehousing
+    {"form_number": "C100", "form_name": "Transit Declaration", "category": "Transit", "description": "For goods transiting through The Bahamas", "usage": "Goods moving through without entering commerce", "where_to_obtain": "Customs Department", "related_section": "Section 35"},
+    {"form_number": "C105", "form_name": "Warehouse Entry", "category": "Warehousing", "description": "Entry of goods into bonded warehouse", "usage": "For duty deferral in licensed bonded warehouses", "where_to_obtain": "Customs Department", "related_section": "Regulations Section 50"},
+    {"form_number": "C106", "form_name": "Warehouse Withdrawal", "category": "Warehousing", "description": "Removal of goods from bonded warehouse", "usage": "Required when releasing goods for consumption or re-export", "where_to_obtain": "Customs Department", "related_section": "Regulations Section 50"},
+    
+    # Special Purpose Forms
+    {"form_number": "C110", "form_name": "Temporary Import Declaration", "category": "Special", "description": "For goods temporarily imported", "usage": "Exhibition goods, professional equipment requiring re-export", "where_to_obtain": "Customs Department", "related_section": "Regulations Section 40"},
+    {"form_number": "C115", "form_name": "ATA Carnet", "category": "Special", "description": "International temporary admission document", "usage": "Professional equipment, samples, exhibition goods", "where_to_obtain": "Chamber of Commerce", "related_section": "International conventions"},
+    {"form_number": "C120", "form_name": "Duty Exemption Application", "category": "Exemptions", "description": "Application for duty relief or exemption", "usage": "Hotel developers, manufacturers, approved industries", "where_to_obtain": "Ministry of Finance", "related_section": "Section 60-70"},
+    {"form_number": "C125", "form_name": "Returning Resident Declaration", "category": "Exemptions", "description": "Personal effects declaration for returning residents", "usage": "Bahamians returning after extended absence (6+ months)", "where_to_obtain": "Customs Department at port of entry", "related_section": "Section 71-75"},
+    
+    # Permits & Licenses
+    {"form_number": "C200", "form_name": "Import Permit Application", "category": "Permits", "description": "Application for restricted goods import permit", "usage": "Firearms, pharmaceuticals, controlled substances", "where_to_obtain": "Relevant ministry/department", "related_section": "Section 30-35"},
+    {"form_number": "C205", "form_name": "Liquor Import License", "category": "Permits", "description": "License to import alcoholic beverages", "usage": "Commercial alcohol importers", "where_to_obtain": "Licensing Authority", "related_section": "Liquor License Act"},
+    {"form_number": "C210", "form_name": "Firearms Import Permit", "category": "Permits", "description": "Police permit for firearms import", "usage": "Personal and commercial firearms", "where_to_obtain": "Royal Bahamas Police Force", "related_section": "Firearms Act"},
+    
+    # Payment & Bonds
+    {"form_number": "C300", "form_name": "Duty Payment Voucher", "category": "Payment", "description": "Receipt for customs duties paid", "usage": "Proof of payment for release of goods", "where_to_obtain": "Customs cashier", "related_section": "Section 40"},
+    {"form_number": "C305", "form_name": "Bond Application", "category": "Payment", "description": "Application for customs bond", "usage": "Securing duties for temporary import, transit, or warehouse", "where_to_obtain": "Customs Department", "related_section": "Regulations Section 40"},
+    {"form_number": "C310", "form_name": "Refund Application", "category": "Payment", "description": "Application for duty refund", "usage": "Overpayment, re-export, or successful appeal", "where_to_obtain": "Customs Department", "related_section": "Section 130"},
+    
+    # Appeals & Disputes
+    {"form_number": "C400", "form_name": "Administrative Review Request", "category": "Appeals", "description": "Request for review of customs decision", "usage": "First level appeal to Comptroller", "where_to_obtain": "Customs Department", "related_section": "Section 130"},
+    {"form_number": "C405", "form_name": "Appeal to Revenue Commission", "category": "Appeals", "description": "Formal appeal against customs assessment", "usage": "Second level appeal after Comptroller review", "where_to_obtain": "Revenue Appeals Commission", "related_section": "Section 135"},
+    
+    # Certificates
+    {"form_number": "C500", "form_name": "Certificate of Origin", "category": "Certificates", "description": "Document certifying country of origin", "usage": "Required for preferential duty treatment", "where_to_obtain": "Bahamas Chamber of Commerce", "related_section": "Trade agreements"},
+    {"form_number": "C505", "form_name": "CARICOM Certificate of Origin", "category": "Certificates", "description": "Origin certificate for CARICOM trade", "usage": "Duty-free treatment under CARICOM treaty", "where_to_obtain": "Chamber of Commerce", "related_section": "Treaty of Chaguaramas"},
+]
+
+# Country Codes (ISO 3166-1)
+COUNTRY_CODES = [
+    # Caribbean (CARICOM)
+    {"code": "BS", "alpha3": "BHS", "name": "Bahamas", "region": "Caribbean", "trade_agreement": "CARICOM", "notes": "Domestic - no import duty"},
+    {"code": "BB", "alpha3": "BRB", "name": "Barbados", "region": "Caribbean", "trade_agreement": "CARICOM", "notes": "CARICOM preferential rates apply"},
+    {"code": "JM", "alpha3": "JAM", "name": "Jamaica", "region": "Caribbean", "trade_agreement": "CARICOM", "notes": "CARICOM preferential rates apply"},
+    {"code": "TT", "alpha3": "TTO", "name": "Trinidad and Tobago", "region": "Caribbean", "trade_agreement": "CARICOM", "notes": "CARICOM preferential rates apply"},
+    {"code": "GY", "alpha3": "GUY", "name": "Guyana", "region": "Caribbean", "trade_agreement": "CARICOM", "notes": "CARICOM preferential rates apply"},
+    {"code": "SR", "alpha3": "SUR", "name": "Suriname", "region": "Caribbean", "trade_agreement": "CARICOM", "notes": "CARICOM preferential rates apply"},
+    {"code": "BZ", "alpha3": "BLZ", "name": "Belize", "region": "Caribbean", "trade_agreement": "CARICOM", "notes": "CARICOM preferential rates apply"},
+    {"code": "HT", "alpha3": "HTI", "name": "Haiti", "region": "Caribbean", "trade_agreement": "CARICOM", "notes": "CARICOM preferential rates apply"},
+    {"code": "AG", "alpha3": "ATG", "name": "Antigua and Barbuda", "region": "Caribbean", "trade_agreement": "CARICOM", "notes": "CARICOM preferential rates apply"},
+    {"code": "DM", "alpha3": "DMA", "name": "Dominica", "region": "Caribbean", "trade_agreement": "CARICOM", "notes": "CARICOM preferential rates apply"},
+    {"code": "GD", "alpha3": "GRD", "name": "Grenada", "region": "Caribbean", "trade_agreement": "CARICOM", "notes": "CARICOM preferential rates apply"},
+    {"code": "KN", "alpha3": "KNA", "name": "Saint Kitts and Nevis", "region": "Caribbean", "trade_agreement": "CARICOM", "notes": "CARICOM preferential rates apply"},
+    {"code": "LC", "alpha3": "LCA", "name": "Saint Lucia", "region": "Caribbean", "trade_agreement": "CARICOM", "notes": "CARICOM preferential rates apply"},
+    {"code": "VC", "alpha3": "VCT", "name": "Saint Vincent and the Grenadines", "region": "Caribbean", "trade_agreement": "CARICOM", "notes": "CARICOM preferential rates apply"},
+    {"code": "CU", "alpha3": "CUB", "name": "Cuba", "region": "Caribbean", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "DO", "alpha3": "DOM", "name": "Dominican Republic", "region": "Caribbean", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "PR", "alpha3": "PRI", "name": "Puerto Rico", "region": "Caribbean", "trade_agreement": None, "notes": "US Territory - standard rates"},
+    {"code": "VI", "alpha3": "VIR", "name": "US Virgin Islands", "region": "Caribbean", "trade_agreement": None, "notes": "US Territory - standard rates"},
+    {"code": "TC", "alpha3": "TCA", "name": "Turks and Caicos Islands", "region": "Caribbean", "trade_agreement": None, "notes": "UK Territory - standard rates"},
+    {"code": "KY", "alpha3": "CYM", "name": "Cayman Islands", "region": "Caribbean", "trade_agreement": None, "notes": "UK Territory - standard rates"},
+    
+    # North America
+    {"code": "US", "alpha3": "USA", "name": "United States", "region": "North America", "trade_agreement": None, "notes": "Major trading partner - standard rates"},
+    {"code": "CA", "alpha3": "CAN", "name": "Canada", "region": "North America", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "MX", "alpha3": "MEX", "name": "Mexico", "region": "North America", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    
+    # Central America
+    {"code": "PA", "alpha3": "PAN", "name": "Panama", "region": "Central America", "trade_agreement": None, "notes": "Free trade zone country"},
+    {"code": "CR", "alpha3": "CRI", "name": "Costa Rica", "region": "Central America", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "GT", "alpha3": "GTM", "name": "Guatemala", "region": "Central America", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "HN", "alpha3": "HND", "name": "Honduras", "region": "Central America", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "NI", "alpha3": "NIC", "name": "Nicaragua", "region": "Central America", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "SV", "alpha3": "SLV", "name": "El Salvador", "region": "Central America", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    
+    # South America
+    {"code": "BR", "alpha3": "BRA", "name": "Brazil", "region": "South America", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "AR", "alpha3": "ARG", "name": "Argentina", "region": "South America", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "CO", "alpha3": "COL", "name": "Colombia", "region": "South America", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "CL", "alpha3": "CHL", "name": "Chile", "region": "South America", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "PE", "alpha3": "PER", "name": "Peru", "region": "South America", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "EC", "alpha3": "ECU", "name": "Ecuador", "region": "South America", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "VE", "alpha3": "VEN", "name": "Venezuela", "region": "South America", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    
+    # Europe
+    {"code": "GB", "alpha3": "GBR", "name": "United Kingdom", "region": "Europe", "trade_agreement": None, "notes": "Commonwealth member - standard rates"},
+    {"code": "DE", "alpha3": "DEU", "name": "Germany", "region": "Europe", "trade_agreement": None, "notes": "Major EU trading partner"},
+    {"code": "FR", "alpha3": "FRA", "name": "France", "region": "Europe", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "IT", "alpha3": "ITA", "name": "Italy", "region": "Europe", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "ES", "alpha3": "ESP", "name": "Spain", "region": "Europe", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "NL", "alpha3": "NLD", "name": "Netherlands", "region": "Europe", "trade_agreement": None, "notes": "Major port - transit goods"},
+    {"code": "BE", "alpha3": "BEL", "name": "Belgium", "region": "Europe", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "CH", "alpha3": "CHE", "name": "Switzerland", "region": "Europe", "trade_agreement": None, "notes": "Luxury goods source"},
+    {"code": "IE", "alpha3": "IRL", "name": "Ireland", "region": "Europe", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "PT", "alpha3": "PRT", "name": "Portugal", "region": "Europe", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "SE", "alpha3": "SWE", "name": "Sweden", "region": "Europe", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "NO", "alpha3": "NOR", "name": "Norway", "region": "Europe", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "DK", "alpha3": "DNK", "name": "Denmark", "region": "Europe", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "PL", "alpha3": "POL", "name": "Poland", "region": "Europe", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    
+    # Asia
+    {"code": "CN", "alpha3": "CHN", "name": "China", "region": "Asia", "trade_agreement": None, "notes": "Major import source - standard rates"},
+    {"code": "JP", "alpha3": "JPN", "name": "Japan", "region": "Asia", "trade_agreement": None, "notes": "Electronics and vehicles source"},
+    {"code": "KR", "alpha3": "KOR", "name": "South Korea", "region": "Asia", "trade_agreement": None, "notes": "Electronics and vehicles source"},
+    {"code": "TW", "alpha3": "TWN", "name": "Taiwan", "region": "Asia", "trade_agreement": None, "notes": "Electronics manufacturing"},
+    {"code": "HK", "alpha3": "HKG", "name": "Hong Kong", "region": "Asia", "trade_agreement": None, "notes": "Major transit hub"},
+    {"code": "SG", "alpha3": "SGP", "name": "Singapore", "region": "Asia", "trade_agreement": None, "notes": "Major transit hub"},
+    {"code": "TH", "alpha3": "THA", "name": "Thailand", "region": "Asia", "trade_agreement": None, "notes": "Manufacturing source"},
+    {"code": "VN", "alpha3": "VNM", "name": "Vietnam", "region": "Asia", "trade_agreement": None, "notes": "Textiles and manufacturing"},
+    {"code": "MY", "alpha3": "MYS", "name": "Malaysia", "region": "Asia", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "ID", "alpha3": "IDN", "name": "Indonesia", "region": "Asia", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "PH", "alpha3": "PHL", "name": "Philippines", "region": "Asia", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "IN", "alpha3": "IND", "name": "India", "region": "Asia", "trade_agreement": None, "notes": "Commonwealth member"},
+    {"code": "BD", "alpha3": "BGD", "name": "Bangladesh", "region": "Asia", "trade_agreement": None, "notes": "Textiles source"},
+    {"code": "PK", "alpha3": "PAK", "name": "Pakistan", "region": "Asia", "trade_agreement": None, "notes": "Textiles source"},
+    
+    # Middle East
+    {"code": "AE", "alpha3": "ARE", "name": "United Arab Emirates", "region": "Middle East", "trade_agreement": None, "notes": "Dubai - major transit hub"},
+    {"code": "SA", "alpha3": "SAU", "name": "Saudi Arabia", "region": "Middle East", "trade_agreement": None, "notes": "Petroleum source"},
+    {"code": "IL", "alpha3": "ISR", "name": "Israel", "region": "Middle East", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "TR", "alpha3": "TUR", "name": "Turkey", "region": "Middle East", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    
+    # Africa
+    {"code": "ZA", "alpha3": "ZAF", "name": "South Africa", "region": "Africa", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "NG", "alpha3": "NGA", "name": "Nigeria", "region": "Africa", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "EG", "alpha3": "EGY", "name": "Egypt", "region": "Africa", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "KE", "alpha3": "KEN", "name": "Kenya", "region": "Africa", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    {"code": "MA", "alpha3": "MAR", "name": "Morocco", "region": "Africa", "trade_agreement": None, "notes": "Standard duty rates apply"},
+    
+    # Oceania
+    {"code": "AU", "alpha3": "AUS", "name": "Australia", "region": "Oceania", "trade_agreement": None, "notes": "Commonwealth member"},
+    {"code": "NZ", "alpha3": "NZL", "name": "New Zealand", "region": "Oceania", "trade_agreement": None, "notes": "Commonwealth member"},
+]
+
+async def seed_customs_forms():
+    """Seed the customs forms collection"""
+    print("Seeding Customs Forms...")
+    
+    await db.customs_forms.delete_many({})
+    
+    for form in CUSTOMS_FORMS:
+        form_doc = {
+            "id": str(uuid.uuid4()),
+            **form
+        }
+        await db.customs_forms.insert_one(form_doc)
+    
+    print(f"Seeded {len(CUSTOMS_FORMS)} customs forms")
+
+async def seed_country_codes():
+    """Seed the country codes collection"""
+    print("Seeding Country Codes...")
+    
+    await db.country_codes.delete_many({})
+    
+    for country in COUNTRY_CODES:
+        country_doc = {
+            "id": str(uuid.uuid4()),
+            **country
+        }
+        await db.country_codes.insert_one(country_doc)
+    
+    print(f"Seeded {len(COUNTRY_CODES)} country codes")
+
 async def main():
     print("Starting database seeding...")
     await seed_hs_codes()
     await seed_cma_regulations()
+    await seed_customs_forms()
+    await seed_country_codes()
     print("Database seeding complete!")
     client.close()
 
