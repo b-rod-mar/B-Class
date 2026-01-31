@@ -308,6 +308,8 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] Added Reset Password page (new password entry with token)
 - [x] Added "Forgot password?" link to Login page
 - [x] Implemented weekly account creation log (auto-emails to admin)
+- [x] Added Alcohol Calculation Guide PDF download (Download Guide button)
+- [x] Added Country of Origin dropdown with 195 countries (Vehicle Calculator)
 
 ### Alcohol Calculator Enhancements (Jan 31, 2026)
 - [x] **Download Guide PDF** - "Download Guide" button next to "View History"
