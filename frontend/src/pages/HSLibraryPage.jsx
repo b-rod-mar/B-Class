@@ -218,6 +218,27 @@ export default function HSLibraryPage() {
             Manage your Bahamas-specific HS code database ({hsCodes.length} codes)
           </p>
         </div>
+        
+        {/* Icon Legend */}
+        <Card className="bg-muted/30 border-muted">
+          <CardContent className="p-3">
+            <p className="text-xs font-medium text-muted-foreground mb-2">Flag Legend:</p>
+            <div className="flex gap-4 text-xs">
+              <div className="flex items-center gap-1.5">
+                <Badge variant="outline" className="bg-rose-500/10 text-rose-400 border-rose-500/30">
+                  <Shield className="h-3 w-3" />
+                </Badge>
+                <span className="text-muted-foreground">Restricted Item</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/30">
+                  <AlertTriangle className="h-3 w-3" />
+                </Badge>
+                <span className="text-muted-foreground">Requires Permit</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="browse" className="w-full">
