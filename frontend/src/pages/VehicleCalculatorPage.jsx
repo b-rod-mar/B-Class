@@ -722,24 +722,41 @@ export default function VehicleCalculatorPage() {
                   </div>
                 )}
 
-                {/* CIF Value */}
+                {/* CIF Value with Currency */}
                 <div className="space-y-2">
-                  <Label htmlFor="cif_value">CIF Value (USD) *</Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="cif_value"
-                      type="number"
-                      min="0"
-                      step="100"
-                      placeholder="0.00"
-                      value={formData.cif_value || ''}
-                      onChange={(e) => setFormData({ ...formData, cif_value: parseFloat(e.target.value) || 0 })}
-                      className="pl-9"
-                      data-testid="cif-value-input"
-                    />
+                  <Label htmlFor="cif_value">CIF Value *</Label>
+                  <div className="flex gap-2">
+                    <Select 
+                      value={formData.cif_currency} 
+                      onValueChange={(value) => setFormData({ ...formData, cif_currency: value })}
+                    >
+                      <SelectTrigger className="w-24" data-testid="currency-select">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">USD $</SelectItem>
+                        <SelectItem value="BSD">BSD $</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="relative flex-1">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="cif_value"
+                        type="number"
+                        min="0"
+                        step="100"
+                        placeholder="0.00"
+                        value={formData.cif_value || ''}
+                        onChange={(e) => setFormData({ ...formData, cif_value: parseFloat(e.target.value) || 0 })}
+                        className="pl-9"
+                        data-testid="cif-value-input"
+                      />
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">Purchase price + shipping + insurance</p>
+                  <p className="text-xs text-muted-foreground">
+                    Purchase price + shipping + insurance
+                    {formData.cif_currency === 'BSD' && ' (BSD is pegged 1:1 to USD)'}
+                  </p>
                 </div>
 
                 {/* Country of Origin */}
