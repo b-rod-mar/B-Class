@@ -75,10 +75,9 @@ const ENGINE_SIZE_PRESETS = [
 ];
 
 const CONCESSION_TYPES = [
-  { value: '', label: 'None - Standard Rate' },
-  { value: 'first_vehicle', label: 'First-time Vehicle Owner' },
-  { value: 'returning_resident', label: 'Returning Resident' },
-  { value: 'disabled', label: 'Disabled Person Exemption' }
+  { value: 'first_vehicle', label: 'First-time Vehicle Owner (20% reduction)' },
+  { value: 'returning_resident', label: 'Returning Resident (15% reduction)' },
+  { value: 'disabled', label: 'Disabled Person Exemption (10% flat rate)' }
 ];
 
 const POPULAR_MAKES = [
