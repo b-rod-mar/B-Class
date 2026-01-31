@@ -308,13 +308,26 @@ export default function ClassificationResultPage() {
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">HS Code</label>
-                  <Input
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    HS Code
+                    <Link to="/hs-library" target="_blank" className="text-primary hover:underline">
+                      <BookOpen className="h-3.5 w-3.5" />
+                    </Link>
+                  </label>
+                  <HSCodeAutoSuggest
                     value={editingItem.hs_code || ''}
-                    onChange={(e) => setEditingItem({ ...editingItem, hs_code: e.target.value })}
-                    placeholder="e.g., 8471.30"
-                    className="font-mono"
-                    data-testid="edit-hs-code"
+                    onChange={(value) => setEditingItem({ ...editingItem, hs_code: value })}
+                    onSelect={(suggestion) => {
+                      setEditingItem({ 
+                        ...editingItem, 
+                        hs_code: suggestion.code,
+                        hs_description: suggestion.description,
+                        is_restricted: suggestion.is_restricted,
+                        requires_permit: suggestion.requires_permit
+                      });
+                      toast.success(`Selected: ${suggestion.code}`);
+                    }}
+                    placeholder="Search or type HS code..."
                   />
                 </div>
                 <div className="space-y-2">
