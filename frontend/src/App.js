@@ -9,6 +9,7 @@ import ClassificationResultPage from './pages/ClassificationResultPage';
 import HistoryPage from './pages/HistoryPage';
 import HSLibraryPage from './pages/HSLibraryPage';
 import AlcoholCalculatorPage from './pages/AlcoholCalculatorPage';
+import CMASearchPage from './pages/CMASearchPage';
 import Layout from './components/Layout';
 import './App.css';
 
@@ -61,6 +62,7 @@ function AppRoutes() {
         <Route path="history" element={<HistoryPage />} />
         <Route path="hs-library" element={<HSLibraryPage />} />
         <Route path="alcohol-calculator" element={<AlcoholCalculatorPage />} />
+        <Route path="cma-guide" element={<CMASearchPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

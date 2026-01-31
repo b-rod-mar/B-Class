@@ -10,7 +10,8 @@ import {
   X,
   ChevronRight,
   Anchor,
-  Wine
+  Wine,
+  Scale
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useState } from 'react';
@@ -22,6 +23,7 @@ const navItems = [
   { path: '/alcohol-calculator', label: 'Alcohol Calculator', icon: Wine },
   { path: '/history', label: 'Classification History', icon: History },
   { path: '/hs-library', label: 'HS Code Library', icon: BookOpen },
+  { path: '/cma-guide', label: 'CMA Reference', icon: Scale },
 ];
 
 export default function Layout() {
