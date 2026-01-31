@@ -62,7 +62,7 @@ export default function AdminDashboardPage() {
   const [users, setUsers] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
-  const [settings, setSettings] = useState({ terms_of_use: '', disclaimer_text: '', weekly_email_enabled: true });
+  const [settings, setSettings] = useState({ terms_of_use: '', disclaimer_text: '', weekly_email_enabled: true, classi_knowledge: '' });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
