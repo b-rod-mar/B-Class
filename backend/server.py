@@ -142,6 +142,7 @@ class ClassificationResponse(BaseModel):
     total_items: int
     auto_approved_count: int
     needs_review_count: int
+    user_updated_count: Optional[int] = 0
     created_at: datetime
     updated_at: Optional[datetime] = None
 
