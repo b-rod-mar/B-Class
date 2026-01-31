@@ -1089,6 +1089,246 @@ async def get_alcohol_rates(user: dict = Depends(get_current_user)):
         "note": "Rates based on Bahamas Customs Management Act"
     }
 
+@api_router.get("/alcohol/template")
+async def get_alcohol_template(user: dict = Depends(get_current_user)):
+    """Download CSV template for bulk alcohol calculations"""
+    from fastapi.responses import StreamingResponse
+    
+    template_data = """product_name,alcohol_type,volume_ml,alcohol_percentage,quantity,cif_value,country_of_origin,brand_label,has_liquor_license
+Bacardi Superior Rum,spirits,750,40,12,540,Puerto Rico,Bacardi,false
+Heineken Beer,beer,330,5,24,48,Netherlands,Heineken,false
+Chardonnay White Wine,wine,750,13,6,120,France,Robert Mondavi,false
+Baileys Irish Cream,liqueur,750,17,4,160,Ireland,Baileys,true
+Jack Daniels Whiskey,spirits,1000,40,6,300,USA,Jack Daniels,false"""
+    
+    output = io.StringIO()
+    output.write(template_data)
+    output.seek(0)
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=alcohol_import_template.csv"}
+    )
+
+@api_router.post("/alcohol/upload")
+async def upload_alcohol_batch(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user)
+):
+    """Process bulk alcohol calculations from CSV/Excel upload"""
+    
+    # Validate file type
+    file_ext = file.filename.split(".")[-1].lower()
+    if file_ext not in ["csv", "xlsx", "xls"]:
+        raise HTTPException(status_code=400, detail="Only CSV and Excel files are supported")
+    
+    content = await file.read()
+    
+    try:
+        if file_ext == "csv":
+            df = pd.read_csv(io.BytesIO(content))
+        else:
+            df = pd.read_excel(io.BytesIO(content))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error reading file: {str(e)}")
+    
+    # Normalize column names
+    df.columns = df.columns.str.lower().str.strip().str.replace(' ', '_')
+    
+    # Required columns
+    required_cols = ['product_name', 'alcohol_type', 'volume_ml', 'alcohol_percentage', 'quantity', 'cif_value']
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise HTTPException(status_code=400, detail=f"Missing required columns: {', '.join(missing_cols)}")
+    
+    # Process each row
+    results = []
+    errors = []
+    batch_id = str(uuid.uuid4())
+    total_landed_cost = 0
+    
+    for idx, row in df.iterrows():
+        try:
+            # Validate alcohol type
+            alcohol_type = str(row['alcohol_type']).lower().strip()
+            if alcohol_type not in ALCOHOL_RATES:
+                alcohol_type = 'other'
+            
+            rates = ALCOHOL_RATES[alcohol_type]
+            warnings = []
+            
+            # Parse values
+            volume_ml = float(row['volume_ml'])
+            alcohol_percentage = float(row['alcohol_percentage'])
+            quantity = int(row['quantity'])
+            cif_value = float(row['cif_value'])
+            has_license = str(row.get('has_liquor_license', 'false')).lower() in ['true', '1', 'yes']
+            
+            # Calculate volumes
+            volume_per_unit_liters = volume_ml / 1000
+            total_volume_liters = volume_per_unit_liters * quantity
+            pure_alcohol_liters = total_volume_liters * (alcohol_percentage / 100)
+            
+            # Calculate duties
+            import_duty = cif_value * rates["import_duty_rate"]
+            
+            if alcohol_type in ["spirits", "liqueur", "other"]:
+                excise_rate = rates.get("excise_per_lpa", 15.00)
+                excise_duty = pure_alcohol_liters * excise_rate
+                excise_calculation = f"{pure_alcohol_liters:.2f} LPA × ${excise_rate:.2f}/LPA"
+            else:
+                excise_rate = rates.get("excise_per_liter", 2.00)
+                excise_duty = total_volume_liters * excise_rate
+                excise_calculation = f"{total_volume_liters:.2f}L × ${excise_rate:.2f}/L"
+            
+            vat_base = cif_value + import_duty + excise_duty
+            vat = vat_base * VAT_RATE
+            
+            license_fee = 0.0
+            if has_license:
+                license_fee = LICENSE_FEE_BASE
+                if quantity > 24:
+                    license_fee += (quantity - 24) * 0.50
+            
+            item_total = cif_value + import_duty + excise_duty + vat + license_fee
+            total_landed_cost += item_total
+            
+            # Warnings
+            if alcohol_percentage > 40:
+                warnings.append("High ABV (>40%)")
+            if rates["requires_permit"]:
+                warnings.append("Permit required")
+            
+            result = {
+                "row": idx + 1,
+                "product_name": str(row['product_name']),
+                "alcohol_type": alcohol_type,
+                "hs_code": rates["hs_code"],
+                "quantity": quantity,
+                "total_volume_liters": round(total_volume_liters, 2),
+                "alcohol_percentage": alcohol_percentage,
+                "cif_value": round(cif_value, 2),
+                "import_duty": round(import_duty, 2),
+                "import_duty_rate": f"{rates['import_duty_rate'] * 100:.0f}%",
+                "excise_duty": round(excise_duty, 2),
+                "excise_calculation": excise_calculation,
+                "vat": round(vat, 2),
+                "license_fee": round(license_fee, 2),
+                "total_landed_cost": round(item_total, 2),
+                "warnings": warnings,
+                "requires_permit": rates["requires_permit"]
+            }
+            results.append(result)
+            
+        except Exception as e:
+            errors.append({"row": idx + 1, "error": str(e)})
+    
+    # Save batch to database
+    batch_record = {
+        "id": batch_id,
+        "user_id": user["id"],
+        "filename": file.filename,
+        "total_items": len(results),
+        "total_landed_cost": round(total_landed_cost, 2),
+        "results": results,
+        "errors": errors,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.alcohol_batches.insert_one(batch_record)
+    
+    return {
+        "batch_id": batch_id,
+        "filename": file.filename,
+        "total_items": len(results),
+        "successful": len(results),
+        "failed": len(errors),
+        "total_landed_cost": round(total_landed_cost, 2),
+        "results": results,
+        "errors": errors
+    }
+
+@api_router.get("/alcohol/batches")
+async def get_alcohol_batches(user: dict = Depends(get_current_user)):
+    """Get user's batch calculation history"""
+    batches = await db.alcohol_batches.find(
+        {"user_id": user["id"]},
+        {"_id": 0, "results": 0}
+    ).sort("created_at", -1).to_list(50)
+    
+    for batch in batches:
+        if isinstance(batch.get("created_at"), str):
+            batch["created_at"] = datetime.fromisoformat(batch["created_at"])
+    
+    return batches
+
+@api_router.get("/alcohol/batches/{batch_id}")
+async def get_alcohol_batch(batch_id: str, user: dict = Depends(get_current_user)):
+    """Get specific batch calculation details"""
+    batch = await db.alcohol_batches.find_one(
+        {"id": batch_id, "user_id": user["id"]},
+        {"_id": 0}
+    )
+    if not batch:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    
+    if isinstance(batch.get("created_at"), str):
+        batch["created_at"] = datetime.fromisoformat(batch["created_at"])
+    
+    return batch
+
+@api_router.get("/alcohol/batches/{batch_id}/export")
+async def export_alcohol_batch(batch_id: str, user: dict = Depends(get_current_user)):
+    """Export batch calculation as CSV"""
+    from fastapi.responses import StreamingResponse
+    
+    batch = await db.alcohol_batches.find_one(
+        {"id": batch_id, "user_id": user["id"]},
+        {"_id": 0}
+    )
+    if not batch:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    
+    # Prepare export data
+    export_data = []
+    for item in batch["results"]:
+        export_data.append({
+            "Product Name": item["product_name"],
+            "Alcohol Type": item["alcohol_type"],
+            "HS Code": item["hs_code"],
+            "Quantity": item["quantity"],
+            "Total Volume (L)": item["total_volume_liters"],
+            "ABV %": item["alcohol_percentage"],
+            "CIF Value": item["cif_value"],
+            "Import Duty": item["import_duty"],
+            "Duty Rate": item["import_duty_rate"],
+            "Excise Duty": item["excise_duty"],
+            "VAT": item["vat"],
+            "License Fee": item["license_fee"],
+            "Total Landed Cost": item["total_landed_cost"],
+            "Permit Required": "Yes" if item["requires_permit"] else "No",
+            "Warnings": "; ".join(item.get("warnings", []))
+        })
+    
+    df = pd.DataFrame(export_data)
+    
+    # Add summary row
+    summary_row = {col: "" for col in df.columns}
+    summary_row["Product Name"] = "TOTAL"
+    summary_row["Total Landed Cost"] = batch["total_landed_cost"]
+    df = pd.concat([df, pd.DataFrame([summary_row])], ignore_index=True)
+    
+    output = io.StringIO()
+    df.to_csv(output, index=False)
+    output.seek(0)
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=alcohol_batch_{batch_id[:8]}.csv"}
+    )
+
 # ============= ROOT ROUTE =============
 @api_router.get("/")
 async def root():
