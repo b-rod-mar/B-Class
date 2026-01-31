@@ -14,6 +14,7 @@ import CustomsFormsPage from './pages/CustomsFormsPage';
 import CountryCodesPage from './pages/CountryCodesPage';
 import NotationsPage from './pages/NotationsPage';
 import TariffsDutiesPage from './pages/TariffsDutiesPage';
+import VehicleCalculatorPage from './pages/VehicleCalculatorPage';
 import Layout from './components/Layout';
 import './App.css';
 
@@ -71,6 +72,7 @@ function AppRoutes() {
         <Route path="country-codes" element={<CountryCodesPage />} />
         <Route path="notations" element={<NotationsPage />} />
         <Route path="tariffs" element={<TariffsDutiesPage />} />
+        <Route path="vehicle-calculator" element={<VehicleCalculatorPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
