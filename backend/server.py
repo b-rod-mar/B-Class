@@ -2219,6 +2219,654 @@ async def suggest_hs_codes(
     
     return {"suggestions": codes}
 
+# ============= VEHICLE BROKERING MODULE =============
+
+class VehicleType(str, Enum):
+    ELECTRIC = "electric"
+    HYBRID = "hybrid"
+    GASOLINE = "gasoline"
+    DIESEL = "diesel"
+    COMMERCIAL = "commercial"
+
+class VehicleCalculationRequest(BaseModel):
+    vin: Optional[str] = None
+    make: str
+    model: str
+    year: int
+    vehicle_type: VehicleType
+    engine_size_cc: Optional[int] = None  # Engine displacement in cc (not applicable for electric)
+    cif_value: float  # Cost, Insurance, Freight value in USD
+    country_of_origin: str
+    is_new: bool = True
+    fuel_type: Optional[str] = None
+    color: Optional[str] = None
+    mileage: Optional[int] = None
+    # Concessionary rate fields
+    is_first_time_owner: bool = False
+    qualifies_for_concession: bool = False
+    concession_type: Optional[str] = None  # "first_vehicle", "returning_resident", "disabled", etc.
+
+class VehicleCalculationResult(BaseModel):
+    id: str
+    vin: Optional[str]
+    make: str
+    model: str
+    year: int
+    vehicle_type: VehicleType
+    engine_size_cc: Optional[int]
+    engine_category: str
+    cif_value: float
+    duty_rate: float
+    duty_rate_display: str
+    import_duty: float
+    environmental_levy: float
+    environmental_levy_rate: str
+    vat: float
+    vat_rate: str
+    stamp_duty: float
+    stamp_duty_rate: str
+    processing_fee: float
+    total_landed_cost: float
+    hs_code: str
+    hs_description: str
+    breakdown: Dict[str, Any]
+    warnings: List[str]
+    concessionary_applied: bool
+    original_duty_rate: Optional[float]
+    savings: Optional[float]
+    country_of_origin: str
+    is_new: bool
+    created_at: datetime
+
+# Vehicle Duty Rates (Bahamas 2024)
+VEHICLE_DUTY_RATES = {
+    "electric": {
+        "hs_code": "8703.80",
+        "hs_description": "Motor vehicles with only electric motor for propulsion",
+        "tiers": [
+            {"max_value": 50000, "rate": 0.10, "description": "Value up to $50,000"},
+            {"max_value": float('inf'), "rate": 0.25, "description": "Value over $50,000"}
+        ]
+    },
+    "hybrid": {
+        "hs_code": "8703.40",
+        "hs_description": "Vehicles with both spark-ignition engine and electric motor",
+        "tiers": [
+            {"max_value": 50000, "rate": 0.10, "description": "Value up to $50,000"},
+            {"max_value": float('inf'), "rate": 0.25, "description": "Value over $50,000"}
+        ]
+    },
+    "gasoline": {
+        "hs_code": "8703.23",
+        "hs_description": "Motor cars with spark-ignition engine",
+        "tiers": [
+            {"max_cc": 1500, "max_value": float('inf'), "rate": 0.45, "description": "Engine under 1.5L (1500cc)"},
+            {"min_cc": 1500, "max_cc": 2000, "max_value": 50000, "rate": 0.45, "description": "1.5L to 2.0L (valued ≤ $50k)"},
+            {"min_cc": 1500, "max_cc": 2000, "min_value": 50000, "rate": 0.65, "description": "1.5L to 2.0L (valued > $50k)"},
+            {"min_cc": 2000, "max_value": float('inf'), "rate": 0.65, "description": "Engine over 2.0L (2000cc)"}
+        ]
+    },
+    "diesel": {
+        "hs_code": "8703.32",
+        "hs_description": "Motor cars with compression-ignition engine (diesel)",
+        "tiers": [
+            {"max_cc": 1500, "max_value": float('inf'), "rate": 0.45, "description": "Engine under 1.5L"},
+            {"min_cc": 1500, "max_cc": 2000, "max_value": 50000, "rate": 0.45, "description": "1.5L to 2.0L (valued ≤ $50k)"},
+            {"min_cc": 1500, "max_cc": 2000, "min_value": 50000, "rate": 0.65, "description": "1.5L to 2.0L (valued > $50k)"},
+            {"min_cc": 2000, "max_value": float('inf'), "rate": 0.65, "description": "Engine over 2.0L"}
+        ]
+    },
+    "commercial": {
+        "hs_code": "8704.21",
+        "hs_description": "Motor vehicles for transport of goods (trucks, heavy equipment)",
+        "tiers": [
+            {"max_weight": 5000, "rate": 0.65, "description": "GVW up to 5 tons"},
+            {"min_weight": 5000, "rate": 0.85, "description": "GVW over 5 tons (heavy equipment)"}
+        ]
+    }
+}
+
+# Additional fees
+VEHICLE_VAT_RATE = 0.10  # 10% VAT
+ENVIRONMENTAL_LEVY_RATE = 0.01  # 1% Environmental Levy
+STAMP_DUTY_RATE = 0.07  # 7% Stamp Duty
+PROCESSING_FEE = 100.00  # Fixed processing fee
+
+def determine_vehicle_duty_rate(vehicle_type: str, engine_cc: Optional[int], cif_value: float) -> tuple:
+    """Determine the applicable duty rate based on vehicle type, engine size, and value"""
+    rates = VEHICLE_DUTY_RATES.get(vehicle_type, VEHICLE_DUTY_RATES["gasoline"])
+    
+    for tier in rates["tiers"]:
+        # Check engine size constraints
+        min_cc = tier.get("min_cc", 0)
+        max_cc = tier.get("max_cc", float('inf'))
+        
+        # Check value constraints
+        min_value = tier.get("min_value", 0)
+        max_value = tier.get("max_value", float('inf'))
+        
+        # For electric/hybrid, only check value
+        if vehicle_type in ["electric", "hybrid"]:
+            if cif_value <= max_value and cif_value > min_value:
+                return tier["rate"], tier["description"]
+            elif min_value == 0 and cif_value <= max_value:
+                return tier["rate"], tier["description"]
+        else:
+            # Check engine size first
+            engine_matches = (engine_cc is None) or (min_cc <= engine_cc < max_cc) or (min_cc <= engine_cc and max_cc == float('inf'))
+            # Check value
+            value_matches = (min_value < cif_value <= max_value) or (min_value == 0 and cif_value <= max_value)
+            
+            if engine_matches and value_matches:
+                return tier["rate"], tier["description"]
+    
+    # Default to highest rate if no match
+    return 0.65, "Default rate"
+
+def get_engine_category(engine_cc: Optional[int], vehicle_type: str) -> str:
+    """Get human-readable engine category"""
+    if vehicle_type == "electric":
+        return "Electric Motor"
+    elif vehicle_type == "hybrid":
+        return "Hybrid (Electric + ICE)"
+    elif engine_cc is None:
+        return "Unknown"
+    elif engine_cc < 1500:
+        return f"Small ({engine_cc}cc / {engine_cc/1000:.1f}L)"
+    elif engine_cc < 2000:
+        return f"Medium ({engine_cc}cc / {engine_cc/1000:.1f}L)"
+    else:
+        return f"Large ({engine_cc}cc / {engine_cc/1000:.1f}L)"
+
+@api_router.post("/vehicle/calculate")
+async def calculate_vehicle_duties(
+    request: VehicleCalculationRequest,
+    user: dict = Depends(get_current_user)
+):
+    """Calculate duties for vehicle import into The Bahamas"""
+    
+    warnings = []
+    rates_info = VEHICLE_DUTY_RATES.get(request.vehicle_type, VEHICLE_DUTY_RATES["gasoline"])
+    
+    # Determine duty rate
+    duty_rate, duty_description = determine_vehicle_duty_rate(
+        request.vehicle_type,
+        request.engine_size_cc,
+        request.cif_value
+    )
+    
+    original_duty_rate = None
+    savings = None
+    concessionary_applied = False
+    
+    # Apply concessionary rates if applicable
+    if request.qualifies_for_concession:
+        original_duty_rate = duty_rate
+        if request.concession_type == "first_vehicle":
+            duty_rate = max(duty_rate - 0.20, 0.10)  # 20% reduction, min 10%
+            concessionary_applied = True
+            warnings.append(f"Concessionary rate applied: First-time vehicle owner (reduced from {original_duty_rate*100:.0f}% to {duty_rate*100:.0f}%)")
+        elif request.concession_type == "returning_resident":
+            duty_rate = max(duty_rate - 0.15, 0.10)
+            concessionary_applied = True
+            warnings.append(f"Concessionary rate applied: Returning resident (reduced from {original_duty_rate*100:.0f}% to {duty_rate*100:.0f}%)")
+        elif request.concession_type == "disabled":
+            duty_rate = 0.10  # Flat 10% for disabled persons
+            concessionary_applied = True
+            warnings.append("Concessionary rate applied: Disabled person exemption (10%)")
+    
+    # Calculate duties
+    import_duty = request.cif_value * duty_rate
+    environmental_levy = request.cif_value * ENVIRONMENTAL_LEVY_RATE
+    stamp_duty = request.cif_value * STAMP_DUTY_RATE
+    
+    # VAT calculated on CIF + all duties
+    vat_base = request.cif_value + import_duty + environmental_levy + stamp_duty
+    vat = vat_base * VEHICLE_VAT_RATE
+    
+    # Total landed cost
+    total_landed_cost = request.cif_value + import_duty + environmental_levy + stamp_duty + vat + PROCESSING_FEE
+    
+    # Calculate savings if concessionary
+    if concessionary_applied and original_duty_rate:
+        original_duty = request.cif_value * original_duty_rate
+        savings = original_duty - import_duty
+    
+    # Add relevant warnings
+    if request.year < datetime.now().year - 5:
+        warnings.append(f"Vehicle is {datetime.now().year - request.year} years old - additional inspection may be required")
+    
+    if not request.is_new and request.mileage and request.mileage > 100000:
+        warnings.append("High mileage vehicle - may require pre-import inspection")
+    
+    if request.vehicle_type == "commercial":
+        warnings.append("Commercial vehicles may require additional permits and weight certification")
+    
+    if request.cif_value > 100000:
+        warnings.append("High-value import - may require additional documentation and insurance verification")
+    
+    if request.vehicle_type in ["gasoline", "diesel"] and request.engine_size_cc and request.engine_size_cc > 3000:
+        warnings.append("Large engine vehicles face higher duties and environmental levies")
+    
+    # Get HS code info
+    engine_category = get_engine_category(request.engine_size_cc, request.vehicle_type)
+    
+    # Create calculation record
+    calc_id = str(uuid.uuid4())
+    calculation = {
+        "id": calc_id,
+        "user_id": user["id"],
+        "vin": request.vin,
+        "make": request.make,
+        "model": request.model,
+        "year": request.year,
+        "vehicle_type": request.vehicle_type,
+        "engine_size_cc": request.engine_size_cc,
+        "engine_category": engine_category,
+        "cif_value": round(request.cif_value, 2),
+        "duty_rate": duty_rate,
+        "duty_rate_display": f"{duty_rate * 100:.0f}% ({duty_description})",
+        "import_duty": round(import_duty, 2),
+        "environmental_levy": round(environmental_levy, 2),
+        "environmental_levy_rate": f"{ENVIRONMENTAL_LEVY_RATE * 100:.0f}%",
+        "vat": round(vat, 2),
+        "vat_rate": f"{VEHICLE_VAT_RATE * 100:.0f}%",
+        "stamp_duty": round(stamp_duty, 2),
+        "stamp_duty_rate": f"{STAMP_DUTY_RATE * 100:.0f}%",
+        "processing_fee": PROCESSING_FEE,
+        "total_landed_cost": round(total_landed_cost, 2),
+        "hs_code": rates_info["hs_code"],
+        "hs_description": rates_info["hs_description"],
+        "breakdown": {
+            "cif_value": round(request.cif_value, 2),
+            "import_duty": round(import_duty, 2),
+            "environmental_levy": round(environmental_levy, 2),
+            "stamp_duty": round(stamp_duty, 2),
+            "vat": round(vat, 2),
+            "processing_fee": PROCESSING_FEE,
+            "total": round(total_landed_cost, 2)
+        },
+        "warnings": warnings,
+        "concessionary_applied": concessionary_applied,
+        "original_duty_rate": original_duty_rate,
+        "savings": round(savings, 2) if savings else None,
+        "country_of_origin": request.country_of_origin,
+        "is_new": request.is_new,
+        "fuel_type": request.fuel_type,
+        "color": request.color,
+        "mileage": request.mileage,
+        "concession_type": request.concession_type,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Save to database
+    await db.vehicle_calculations.insert_one(calculation)
+    
+    calculation["created_at"] = datetime.fromisoformat(calculation["created_at"])
+    return calculation
+
+@api_router.get("/vehicle/calculations")
+async def get_vehicle_calculations(user: dict = Depends(get_current_user)):
+    """Get user's vehicle calculation history"""
+    calculations = await db.vehicle_calculations.find(
+        {"user_id": user["id"]},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    for calc in calculations:
+        if isinstance(calc.get("created_at"), str):
+            calc["created_at"] = datetime.fromisoformat(calc["created_at"])
+    
+    return calculations
+
+@api_router.get("/vehicle/calculations/{calc_id}")
+async def get_vehicle_calculation(calc_id: str, user: dict = Depends(get_current_user)):
+    """Get a specific vehicle calculation"""
+    calculation = await db.vehicle_calculations.find_one(
+        {"id": calc_id, "user_id": user["id"]},
+        {"_id": 0}
+    )
+    if not calculation:
+        raise HTTPException(status_code=404, detail="Calculation not found")
+    
+    if isinstance(calculation.get("created_at"), str):
+        calculation["created_at"] = datetime.fromisoformat(calculation["created_at"])
+    
+    return calculation
+
+@api_router.get("/vehicle/rates")
+async def get_vehicle_rates(user: dict = Depends(get_current_user)):
+    """Get current vehicle duty rates"""
+    return {
+        "rates": VEHICLE_DUTY_RATES,
+        "vat_rate": VEHICLE_VAT_RATE,
+        "environmental_levy_rate": ENVIRONMENTAL_LEVY_RATE,
+        "stamp_duty_rate": STAMP_DUTY_RATE,
+        "processing_fee": PROCESSING_FEE,
+        "last_updated": "January 2026",
+        "note": "Rates based on Bahamas Customs Management Act and 2024 Budget"
+    }
+
+@api_router.get("/vehicle/template")
+async def get_vehicle_template(user: dict = Depends(get_current_user)):
+    """Download CSV template for bulk vehicle calculations"""
+    from fastapi.responses import StreamingResponse
+    
+    template_data = """vin,make,model,year,vehicle_type,engine_size_cc,cif_value,country_of_origin,is_new,mileage,color
+1HGBH41JXMN109186,Toyota,Camry,2023,gasoline,2500,35000,Japan,true,0,White
+5YJSA1DG9DFP14705,Tesla,Model S,2024,electric,,85000,USA,true,0,Black
+WVWZZZ3CZWE123456,Volkswagen,Golf,2023,hybrid,1400,42000,Germany,true,0,Silver
+1C4RJFAG5FC123456,Jeep,Grand Cherokee,2022,gasoline,3600,55000,USA,false,25000,Blue
+3FADP4BJ9DM123456,Ford,Focus,2021,gasoline,1000,18000,USA,false,45000,Red
+JN1TANT31U0000001,Nissan,Leaf,2024,electric,,32000,Japan,true,0,White"""
+    
+    output = io.StringIO()
+    output.write(template_data)
+    output.seek(0)
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=vehicle_import_template.csv"}
+    )
+
+@api_router.post("/vehicle/upload")
+async def upload_vehicle_batch(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user)
+):
+    """Process bulk vehicle calculations from CSV/Excel upload"""
+    
+    # Validate file type
+    file_ext = file.filename.split(".")[-1].lower()
+    if file_ext not in ["csv", "xlsx", "xls"]:
+        raise HTTPException(status_code=400, detail="Only CSV and Excel files are supported")
+    
+    content = await file.read()
+    
+    try:
+        if file_ext == "csv":
+            df = pd.read_csv(io.BytesIO(content))
+        else:
+            df = pd.read_excel(io.BytesIO(content))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error reading file: {str(e)}")
+    
+    # Normalize column names
+    df.columns = df.columns.str.lower().str.strip().str.replace(' ', '_')
+    
+    # Required columns
+    required_cols = ['make', 'model', 'year', 'vehicle_type', 'cif_value', 'country_of_origin']
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise HTTPException(status_code=400, detail=f"Missing required columns: {', '.join(missing_cols)}")
+    
+    # Process each row
+    results = []
+    errors = []
+    batch_id = str(uuid.uuid4())
+    total_landed_cost = 0
+    total_duties = 0
+    
+    for idx, row in df.iterrows():
+        try:
+            # Parse values
+            vehicle_type = str(row['vehicle_type']).lower().strip()
+            if vehicle_type not in VEHICLE_DUTY_RATES:
+                vehicle_type = 'gasoline'
+            
+            engine_cc = int(row['engine_size_cc']) if 'engine_size_cc' in df.columns and pd.notna(row.get('engine_size_cc')) else None
+            cif_value = float(row['cif_value'])
+            year = int(row['year'])
+            is_new = str(row.get('is_new', 'true')).lower() in ['true', '1', 'yes']
+            
+            # Determine duty rate
+            duty_rate, duty_description = determine_vehicle_duty_rate(vehicle_type, engine_cc, cif_value)
+            rates_info = VEHICLE_DUTY_RATES.get(vehicle_type, VEHICLE_DUTY_RATES["gasoline"])
+            
+            # Calculate duties
+            import_duty = cif_value * duty_rate
+            environmental_levy = cif_value * ENVIRONMENTAL_LEVY_RATE
+            stamp_duty = cif_value * STAMP_DUTY_RATE
+            vat_base = cif_value + import_duty + environmental_levy + stamp_duty
+            vat = vat_base * VEHICLE_VAT_RATE
+            item_total = cif_value + import_duty + environmental_levy + stamp_duty + vat + PROCESSING_FEE
+            
+            result = {
+                "row": idx + 1,
+                "vin": str(row.get('vin', '')) if 'vin' in df.columns and pd.notna(row.get('vin')) else None,
+                "make": str(row['make']),
+                "model": str(row['model']),
+                "year": year,
+                "vehicle_type": vehicle_type,
+                "engine_size_cc": engine_cc,
+                "engine_category": get_engine_category(engine_cc, vehicle_type),
+                "cif_value": round(cif_value, 2),
+                "duty_rate": duty_rate,
+                "duty_rate_display": f"{duty_rate * 100:.0f}%",
+                "import_duty": round(import_duty, 2),
+                "environmental_levy": round(environmental_levy, 2),
+                "stamp_duty": round(stamp_duty, 2),
+                "vat": round(vat, 2),
+                "processing_fee": PROCESSING_FEE,
+                "total_landed_cost": round(item_total, 2),
+                "hs_code": rates_info["hs_code"],
+                "country_of_origin": str(row['country_of_origin']),
+                "is_new": is_new,
+                "color": str(row.get('color', '')) if 'color' in df.columns and pd.notna(row.get('color')) else None,
+                "mileage": int(row.get('mileage', 0)) if 'mileage' in df.columns and pd.notna(row.get('mileage')) else None
+            }
+            
+            results.append(result)
+            total_landed_cost += item_total
+            total_duties += import_duty
+            
+        except Exception as e:
+            errors.append({"row": idx + 1, "error": str(e)})
+    
+    # Save batch record
+    batch_record = {
+        "id": batch_id,
+        "user_id": user["id"],
+        "filename": file.filename,
+        "total_vehicles": len(results),
+        "successful": len(results),
+        "failed": len(errors),
+        "total_cif": round(sum(r["cif_value"] for r in results), 2),
+        "total_duties": round(total_duties, 2),
+        "total_landed_cost": round(total_landed_cost, 2),
+        "results": results,
+        "errors": errors,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.vehicle_batches.insert_one(batch_record)
+    
+    return {
+        "batch_id": batch_id,
+        "filename": file.filename,
+        "total_vehicles": len(results),
+        "successful": len(results),
+        "failed": len(errors),
+        "total_cif": round(sum(r["cif_value"] for r in results), 2),
+        "total_duties": round(total_duties, 2),
+        "total_landed_cost": round(total_landed_cost, 2),
+        "results": results,
+        "errors": errors
+    }
+
+@api_router.get("/vehicle/batches")
+async def get_vehicle_batches(user: dict = Depends(get_current_user)):
+    """Get user's vehicle batch history"""
+    batches = await db.vehicle_batches.find(
+        {"user_id": user["id"]},
+        {"_id": 0, "results": 0}
+    ).sort("created_at", -1).to_list(50)
+    
+    for batch in batches:
+        if isinstance(batch.get("created_at"), str):
+            batch["created_at"] = datetime.fromisoformat(batch["created_at"])
+    
+    return batches
+
+@api_router.get("/vehicle/batches/{batch_id}")
+async def get_vehicle_batch(batch_id: str, user: dict = Depends(get_current_user)):
+    """Get specific vehicle batch details"""
+    batch = await db.vehicle_batches.find_one(
+        {"id": batch_id, "user_id": user["id"]},
+        {"_id": 0}
+    )
+    if not batch:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    
+    if isinstance(batch.get("created_at"), str):
+        batch["created_at"] = datetime.fromisoformat(batch["created_at"])
+    
+    return batch
+
+@api_router.get("/vehicle/batches/{batch_id}/export")
+async def export_vehicle_batch(batch_id: str, format: str = "csv", user: dict = Depends(get_current_user)):
+    """Export vehicle batch as CSV or Excel"""
+    from fastapi.responses import StreamingResponse
+    
+    batch = await db.vehicle_batches.find_one(
+        {"id": batch_id, "user_id": user["id"]},
+        {"_id": 0}
+    )
+    if not batch:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    
+    # Prepare export data
+    export_data = []
+    for item in batch["results"]:
+        export_data.append({
+            "VIN": item.get("vin", ""),
+            "Make": item.get("make", ""),
+            "Model": item.get("model", ""),
+            "Year": item.get("year", ""),
+            "Type": item.get("vehicle_type", ""),
+            "Engine (cc)": item.get("engine_size_cc", ""),
+            "Engine Category": item.get("engine_category", ""),
+            "HS Code": item.get("hs_code", ""),
+            "Country": item.get("country_of_origin", ""),
+            "New/Used": "New" if item.get("is_new") else "Used",
+            "CIF Value ($)": item.get("cif_value", 0),
+            "Duty Rate": item.get("duty_rate_display", ""),
+            "Import Duty ($)": item.get("import_duty", 0),
+            "Environmental Levy ($)": item.get("environmental_levy", 0),
+            "Stamp Duty ($)": item.get("stamp_duty", 0),
+            "VAT ($)": item.get("vat", 0),
+            "Processing Fee ($)": item.get("processing_fee", 0),
+            "Total Landed Cost ($)": item.get("total_landed_cost", 0)
+        })
+    
+    df = pd.DataFrame(export_data)
+    
+    if format == "xlsx":
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Vehicle Imports')
+        output.seek(0)
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename=vehicle_batch_{batch_id[:8]}.xlsx"}
+        )
+    else:
+        output = io.StringIO()
+        df.to_csv(output, index=False)
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=vehicle_batch_{batch_id[:8]}.csv"}
+        )
+
+@api_router.get("/vehicle/checklist")
+async def get_vehicle_checklist(user: dict = Depends(get_current_user)):
+    """Get vehicle clearance checklist for client and broker"""
+    return {
+        "client_checklist": [
+            {
+                "category": "Vehicle Documents",
+                "items": [
+                    {"item": "Original Title/Ownership Document", "required": True, "notes": "Must be in client's name or endorsed"},
+                    {"item": "Bill of Sale/Invoice", "required": True, "notes": "Showing purchase price and seller details"},
+                    {"item": "Vehicle Registration (current)", "required": True, "notes": "From country of export"},
+                    {"item": "Export Certificate/Deregistration", "required": True, "notes": "Proof vehicle was legally exported"},
+                    {"item": "VIN Verification Report", "required": False, "notes": "Recommended for used vehicles"}
+                ]
+            },
+            {
+                "category": "Shipping Documents",
+                "items": [
+                    {"item": "Bill of Lading (Original)", "required": True, "notes": "Shows consignee and vehicle details"},
+                    {"item": "Commercial Invoice", "required": True, "notes": "For customs valuation"},
+                    {"item": "Packing List", "required": False, "notes": "If vehicle shipped with accessories"}
+                ]
+            },
+            {
+                "category": "Personal Documents",
+                "items": [
+                    {"item": "Valid Passport", "required": True, "notes": "For identity verification"},
+                    {"item": "National Insurance Number", "required": True, "notes": "For registration purposes"},
+                    {"item": "Proof of Address", "required": True, "notes": "Utility bill or bank statement"},
+                    {"item": "Driver's License", "required": True, "notes": "Valid Bahamas or international license"}
+                ]
+            },
+            {
+                "category": "For Concessionary Rates",
+                "items": [
+                    {"item": "First-time Owner Declaration", "required": False, "notes": "Notarized statement if claiming first vehicle"},
+                    {"item": "Returning Resident Certificate", "required": False, "notes": "From Immigration Department"},
+                    {"item": "Disability Certificate", "required": False, "notes": "From registered medical practitioner"}
+                ]
+            }
+        ],
+        "broker_checklist": [
+            {
+                "category": "Declaration Preparation",
+                "items": [
+                    {"item": "Complete Electronic Single Window Entry", "required": True, "notes": "Form C-76 or equivalent"},
+                    {"item": "Calculate Duties (Import Duty, VAT, Levies)", "required": True, "notes": "Use official rate tables"},
+                    {"item": "Verify HS Code Classification", "required": True, "notes": "8703.xx for passenger vehicles"},
+                    {"item": "Check for Concessionary Eligibility", "required": True, "notes": "First vehicle, returning resident, etc."}
+                ]
+            },
+            {
+                "category": "Inspection & Compliance",
+                "items": [
+                    {"item": "Schedule Vehicle Inspection", "required": True, "notes": "Customs warehouse or port"},
+                    {"item": "Verify VIN matches documentation", "required": True, "notes": "Physical inspection required"},
+                    {"item": "Check for Salvage/Rebuilt Title", "required": True, "notes": "May affect duty calculation"},
+                    {"item": "Environmental Compliance Check", "required": False, "notes": "For commercial vehicles"}
+                ]
+            },
+            {
+                "category": "Payment Processing",
+                "items": [
+                    {"item": "Collect all duties and fees from client", "required": True, "notes": "Before customs release"},
+                    {"item": "Process payment at Customs Treasury", "required": True, "notes": "Keep receipt copies"},
+                    {"item": "Obtain Customs Release Order", "required": True, "notes": "For port release"}
+                ]
+            },
+            {
+                "category": "Post-Clearance",
+                "items": [
+                    {"item": "Arrange vehicle delivery/pickup", "required": True, "notes": "Coordinate with port"},
+                    {"item": "Provide client with import documentation", "required": True, "notes": "For licensing"},
+                    {"item": "Advise on Road Traffic registration", "required": True, "notes": "Thompson Blvd or local office"}
+                ]
+            }
+        ],
+        "important_contacts": {
+            "customs_main": "+1 (242) 325-6550",
+            "customs_email": "customs@bahamas.gov.bs",
+            "road_traffic": "+1 (242) 322-2610",
+            "port_authority": "+1 (242) 323-2265"
+        }
+    }
+
 # ============= ROOT ROUTE =============
 @api_router.get("/")
 async def root():
