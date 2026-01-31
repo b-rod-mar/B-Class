@@ -1679,8 +1679,8 @@ async def get_forms_categories(user: dict = Depends(get_current_user)):
 # ============= COUNTRY CODES MODULE =============
 class CountryCodeResponse(BaseModel):
     id: str
+    customs_code: str
     code: str
-    alpha3: str
     name: str
     region: str
     trade_agreement: Optional[str] = None
@@ -1696,8 +1696,8 @@ async def get_country_codes(
     query = {}
     if search:
         query["$or"] = [
+            {"customs_code": {"$regex": search, "$options": "i"}},
             {"code": {"$regex": search, "$options": "i"}},
-            {"alpha3": {"$regex": search, "$options": "i"}},
             {"name": {"$regex": search, "$options": "i"}}
         ]
     if region:
