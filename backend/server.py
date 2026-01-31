@@ -2461,15 +2461,28 @@ async def calculate_vehicle_duties(
     
     # Calculate duties
     import_duty = request.cif_value * duty_rate
-    environmental_levy = request.cif_value * ENVIRONMENTAL_LEVY_RATE
-    stamp_duty = request.cif_value * STAMP_DUTY_RATE
     
-    # VAT calculated on CIF + all duties
-    vat_base = request.cif_value + import_duty + environmental_levy + stamp_duty
-    vat = vat_base * VEHICLE_VAT_RATE
+    # Calculate processing fee: 1% of CIF, min $10, max $750
+    processing_fee = calculate_processing_fee(request.cif_value)
     
-    # Total landed cost
-    total_landed_cost = request.cif_value + import_duty + environmental_levy + stamp_duty + vat + PROCESSING_FEE
+    # Calculate environmental levy based on vehicle age/type
+    environmental_levy, levy_description, requires_approval, tire_levy = calculate_environmental_levy(
+        request.year,
+        request.is_new,
+        request.is_antique,
+        request.cif_value,
+        import_duty,
+        request.num_tires
+    )
+    
+    # Landed Cost = CIF + Duty + Environmental Levy + Processing Fee + Tire Levy
+    landed_cost = request.cif_value + import_duty + environmental_levy + processing_fee + tire_levy
+    
+    # VAT = 10% of Landed Cost
+    vat = landed_cost * VEHICLE_VAT_RATE
+    
+    # Total Due = All fees + VAT
+    total_landed_cost = landed_cost + vat
     
     # Calculate savings if concessionary
     if concessionary_applied and original_duty_rate:
@@ -2477,8 +2490,11 @@ async def calculate_vehicle_duties(
         savings = original_duty - import_duty
     
     # Add relevant warnings
-    if request.year < datetime.now().year - 5:
-        warnings.append(f"Vehicle is {datetime.now().year - request.year} years old - additional inspection may be required")
+    if requires_approval:
+        warnings.append("⚠️ Ministry of Finance approval required for this vehicle category")
+    
+    if request.year < datetime.now().year - 10:
+        warnings.append(f"Vehicle is {datetime.now().year - request.year} years old - 20% Environmental Levy applies, Ministry approval required")
     
     if not request.is_new and request.mileage and request.mileage > 100000:
         warnings.append("High mileage vehicle - may require pre-import inspection")
