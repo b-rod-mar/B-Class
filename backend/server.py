@@ -1906,18 +1906,84 @@ BAHAMAS_CUSTOMS_KNOWLEDGE = """
    - Cat Island (TBI)
    - Long Island (LGI)
 
-### Common Customs Forms
-- **C-13**: Customs Entry Form (main import declaration)
-- **C-14**: Customs Declaration for Unaccompanied Baggage
-- **C-15**: Export Entry Form
-- **C-17**: Transshipment Entry
-- **C-18**: Warehouse Entry
-- **C-63**: Application for Duty Exemption
-- **C-78**: Application for Temporary Import Permit
-- **SAD (Single Administrative Document)**: Electronic Single Window format
+### Bahamas Tariff Structure (2023)
+- **8-digit HS codes** based on international Harmonized System
+- **Tariff schedule columns:**
+  - Column 3: General Rate (ad valorem percentage)
+  - Column 4: Specific Rate (per unit - kg, liter, etc.)
+  - Column 5: Maximum Variable Rate (Minister may impose by Order)
+  - Column 6: EPA Preferential Rate (CARIFORUM/EU)
+  - Column 7: Statistical Unit of Measure
+- **"**" symbol** indicates excise duty also applies
 
-### Duty Rates Overview
-- **0% (Free)**: Essential medicines, some raw materials, educational materials
+### Common Duty Rates by Category
+- **0% (Free)**: Beef, educational materials, medical equipment for public facilities
+- **5%**: Refrigerators, energy-efficient appliances
+- **10%**: Live poultry, live swine, basic agricultural items
+- **25%**: Most manufactured goods, motor vehicles (base)
+- **35%**: Wine, beer, general textiles
+- **40%**: Pets (dogs/cats less), exotic animals, luxury items
+- **45%**: Spirits, high-value items
+- **100%**: All types of bottled water (protect local industry)
+- **220%**: Manufactured tobacco products (cigarettes, cigars)
+
+### Excise Duties (in addition to import duty)
+- **Alcoholic Beverages:**
+  - Beer: $5.00 per liter of pure alcohol (LPA)
+  - Wine (still): $2.50 per liter
+  - Wine (sparkling): $4.00 per liter
+  - Spirits: $8.00 per LPA
+  - Liqueurs: $6.00 per LPA
+
+- **Tobacco Products:**
+  - Cigarettes: $0.25 per stick
+  - Cigars: $1.50 each
+  - Smoking tobacco: $15.00/kg
+
+- **Petroleum:**
+  - Motor gasoline: $0.75/gallon
+  - Diesel: $0.60/gallon
+
+### Additional Charges
+- **VAT**: 10% on (CIF value + all duties)
+- **Warehousing Duty**: 1% ad valorem
+- **Environmental Levy**: Applies to certain items
+
+### Common Customs Forms
+- **C-13**: Home Consumption Entry (main import declaration)
+- **C-14**: Entry for Goods Under Hawksbill Creek Agreement
+- **C-15**: Bill of Sight (provisional entry)
+- **C-16**: Warehousing Entry
+- **C-17**: Accompanied Baggage Declaration
+- **C-18**: Unaccompanied Baggage Declaration
+- **C-24**: Ex-Warehousing Home Consumption Entry
+- **C-29**: Export Entry for Domestic Goods
+- **C-35**: Transhipment Entry
+- **C-43**: Declaration of Value for Customs Purposes
+- **C-46**: Export Entry for Drawback Goods
+- **C-63**: Application for Duty Exemption (use BEFORE importing)
+- **CB1-CB13**: Various bond forms
+
+### Chapter 98 - Duty Exemptions
+- Agricultural equipment
+- Educational materials for accredited institutions
+- Medical equipment for public health facilities
+- Religious artifacts for recognized organizations
+- Sporting equipment for registered organizations
+- Relief goods and disaster supplies
+- Goods under Hawksbill Creek Agreement (Freeport)
+
+### General Rules of Interpretation (GRI)
+1. **GRI 1**: Start with heading descriptions and section/chapter notes
+2. **GRI 2(a)**: Incomplete/unassembled goods classified as complete if essential character present
+3. **GRI 2(b)**: Mixtures - heading for material includes mixtures with others
+4. **GRI 3(a)**: Most specific description wins
+5. **GRI 3(b)**: Essential character determines classification
+6. **GRI 3(c)**: Last heading numerically wins as tiebreaker
+7. **GRI 4**: Classify by most similar goods
+8. **GRI 5(a)**: Cases/containers classified with their contents
+9. **GRI 5(b)**: Normal packing classified with goods
+10. **GRI 6**: Same rules apply at subheading level
 - **5-10%**: Basic foodstuffs, agricultural inputs, IT equipment
 - **25-35%**: General manufactured goods, clothing, footwear
 - **35-45%**: Alcoholic beverages (plus excise duty)
