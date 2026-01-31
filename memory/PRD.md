@@ -22,13 +22,26 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - `GET /api/classifications` - List classifications
 - `GET /api/classifications/{id}` - Get classification details
 - `PUT /api/classifications/{id}/items/{index}` - Update item
+- `DELETE /api/classifications/{id}` - Delete classification
+- `DELETE /api/classifications/{id}/items/{index}` - Delete item
 - `GET /api/classifications/{id}/export` - Export CSV/XLSX
 - `GET/POST/PUT/DELETE /api/hs-codes` - HS code library CRUD
 - `GET /api/dashboard/stats` - Dashboard statistics
 - `POST /api/alcohol/calculate` - Alcohol duty calculation
 - `GET /api/alcohol/calculations` - Alcohol calculation history
+- `DELETE /api/alcohol/calculations/{id}` - Delete alcohol calculation
 - `GET /api/alcohol/calculations/{id}/export` - Export alcohol calculation
 - `GET /api/alcohol/rates` - Current duty rates
+- `POST /api/vehicle/calculate` - Vehicle duty calculation
+- `GET /api/vehicle/calculations` - Vehicle calculation history
+- `DELETE /api/vehicle/calculations/{id}` - Delete vehicle calculation
+- `GET /api/vehicle/rates` - Current vehicle duty rates
+- `GET /api/vehicle/template` - Download bulk upload template
+- `POST /api/vehicle/upload` - Bulk vehicle upload
+- `GET /api/vehicle/batches` - Batch history
+- `GET /api/vehicle/checklist` - Clearance checklists
+- `POST /api/feedback` - Submit user feedback
+- `GET /api/feedback` - Get feedback history
 
 ## User Personas
 1. **Customs Broker** - Primary user, needs fast accurate HS classification
