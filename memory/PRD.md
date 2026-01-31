@@ -231,6 +231,12 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] **Quick-Apply Buttons** - Antique ($200) and Over 10 Years (20%) buttons
 - [x] **Auto-Detection Warning** - Shows when vehicle >10 years old
 - [x] **Antique Auto-Fill** - Suggests vintage year when antique selected
+- [x] **MOF Approval Button** - For vehicles >10 years old, toggles approval status
+- [x] **Body Style Dropdown** - Categorized vehicle body types (Sedan, SUV, Pickup, etc.)
+- [x] **Updated Bulk Template** - Vehicle template includes body_style column
+
+### HS Code Library UI Improvements (Jan 31, 2026)
+- [x] **Flag Legend** - Icon legend in header explaining Restricted Item (shield) and Requires Permit (warning) icons
 
 ### Design
 - Dark mode with Electric Teal (#2DD4BF) accents
@@ -270,6 +276,16 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [ ] Real-time duty rate API integration
 
 ## Next Tasks
-1. Add manual entry option (single item form) to calculators alongside bulk upload
-2. Implement PDF invoice extraction with AI
-3. Create admin dashboard for user management
+1. Finalize NotationsPage UI (scaffold exists, needs full build-out)
+2. Add HS Library search link from item edit dialog in ClassificationResultPage
+3. Create downloadable PDF for Alcohol calculation formula guide
+4. Add manual entry option (single item form) to calculators alongside bulk upload
+5. Implement PDF invoice extraction with AI
+6. Create admin dashboard for user management
+
+## Completed This Session (Jan 31, 2026)
+- [x] Verified body_style dropdown saves to DB and appears in history/invoice
+- [x] Added MOF Approval Granted button for vehicles >10 years old
+- [x] Added HS Code Library flag legend (Restricted/Requires Permit icons)
+- [x] Updated vehicle bulk upload template with body_style column
+- [x] Updated frontend template info with body_style documentation
