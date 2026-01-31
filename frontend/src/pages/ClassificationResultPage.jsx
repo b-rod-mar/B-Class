@@ -237,7 +237,7 @@ export default function ClassificationResultPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card className="bg-card/50">
           <CardContent className="p-4 text-center">
             <p className="text-3xl font-bold font-['Chivo'] text-foreground">{classification.total_items}</p>
@@ -254,6 +254,14 @@ export default function ClassificationResultPage() {
           <CardContent className="p-4 text-center">
             <p className="text-3xl font-bold font-['Chivo'] text-amber-400">{classification.needs_review_count}</p>
             <p className="text-xs text-amber-400/70 uppercase tracking-wider">Needs Review</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-yellow-500/10 border-yellow-500/20">
+          <CardContent className="p-4 text-center">
+            <p className="text-3xl font-bold font-['Chivo'] text-yellow-400">
+              {classification.items.filter(item => item.review_status === 'user_updated').length}
+            </p>
+            <p className="text-xs text-yellow-400/70 uppercase tracking-wider">User Updated</p>
           </CardContent>
         </Card>
         <Card className="bg-primary/10 border-primary/20">
