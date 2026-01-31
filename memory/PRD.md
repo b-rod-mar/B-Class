@@ -252,6 +252,18 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] **Database Logging** - All logs stored in weekly_logs collection
 - [x] **Admin Trigger** - Manual trigger endpoint for testing
 
+### User Profile & Account Security (Jan 31, 2026)
+- [x] **Account Secret Code** - 4-6 digit numeric code required during registration
+- [x] **Profile Page** - Centralized view of all account information
+- [x] **User Avatar** - Displayed in sidebar with dropdown menu
+- [x] **Profile Dropdown** - My Profile, Account Settings, Sign Out options
+- [x] **Edit Profile** - Update name, company (requires secret code)
+- [x] **Change Email** - Update email address (requires secret code)
+- [x] **Change Password** - Update password (requires secret code)
+- [x] **Change Secret Code** - Update recovery code (requires current code)
+- [x] **Secret Code Recovery** - Reset password using email + secret code (no email link needed)
+- [x] **Security Warnings** - Clear instructions to store secret code securely
+- [x] **Forgot Password Options** - Two tabs: Email Link or Secret Code recovery
 ### Design
 - Dark mode with Electric Teal (#2DD4BF) accents
 - Chivo (headings), Inter (body), JetBrains Mono (code) fonts
