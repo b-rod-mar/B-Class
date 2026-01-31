@@ -643,6 +643,42 @@ async def update_classification_item(
     
     return {"message": "Item updated successfully"}
 
+@api_router.delete("/classifications/{classification_id}/items/{item_index}")
+async def delete_classification_item(
+    classification_id: str,
+    item_index: int,
+    user: dict = Depends(get_current_user)
+):
+    """Delete a specific item from a classification"""
+    classification = await db.classifications.find_one(
+        {"id": classification_id, "user_id": user["id"]},
+        {"_id": 0}
+    )
+    if not classification:
+        raise HTTPException(status_code=404, detail="Classification not found")
+    
+    if item_index < 0 or item_index >= len(classification["items"]):
+        raise HTTPException(status_code=400, detail="Invalid item index")
+    
+    # Remove item
+    classification["items"].pop(item_index)
+    
+    # Recalculate stats
+    auto_approved = sum(1 for item in classification["items"] if item.get("review_status") == "auto_approved")
+    
+    await db.classifications.update_one(
+        {"id": classification_id},
+        {"$set": {
+            "items": classification["items"],
+            "total_items": len(classification["items"]),
+            "auto_approved_count": auto_approved,
+            "needs_review_count": len(classification["items"]) - auto_approved,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Item deleted successfully"}
+
 @api_router.get("/classifications/{classification_id}/export")
 async def export_classification(
     classification_id: str,
