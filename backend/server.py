@@ -1743,6 +1743,81 @@ async def admin_deactivate_user(user_id: str, admin: dict = Depends(require_supe
     
     return {"message": "User deactivated"}
 
+@api_router.delete("/admin/users/{user_id}/permanent")
+async def admin_permanently_delete_user(user_id: str, admin: dict = Depends(require_super_admin)):
+    """Permanently delete a user and ALL their data - THIS CANNOT BE UNDONE"""
+    # Don't allow deleting yourself
+    if user_id == admin["id"]:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    # Get user info for logging before deletion
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "email": 1, "name": 1, "role": 1})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Don't allow deleting other super admins (safety measure)
+    if user.get("role") == "super_admin":
+        raise HTTPException(status_code=400, detail="Cannot permanently delete super admin accounts")
+    
+    # Delete all user data from all collections
+    deleted_counts = {}
+    
+    # Delete user's classifications
+    result = await db.classifications.delete_many({"user_id": user_id})
+    deleted_counts["classifications"] = result.deleted_count
+    
+    # Delete user's documents
+    result = await db.documents.delete_many({"user_id": user_id})
+    deleted_counts["documents"] = result.deleted_count
+    
+    # Delete user's alcohol calculations
+    result = await db.alcohol_calculations.delete_many({"user_id": user_id})
+    deleted_counts["alcohol_calculations"] = result.deleted_count
+    
+    # Delete user's alcohol batches
+    result = await db.alcohol_batches.delete_many({"user_id": user_id})
+    deleted_counts["alcohol_batches"] = result.deleted_count
+    
+    # Delete user's vehicle calculations
+    result = await db.vehicle_calculations.delete_many({"user_id": user_id})
+    deleted_counts["vehicle_calculations"] = result.deleted_count
+    
+    # Delete user's vehicle batches
+    result = await db.vehicle_batches.delete_many({"user_id": user_id})
+    deleted_counts["vehicle_batches"] = result.deleted_count
+    
+    # Delete user's HS classification batches
+    result = await db.hs_classification_batches.delete_many({"user_id": user_id})
+    deleted_counts["hs_batches"] = result.deleted_count
+    
+    # Delete user's notations
+    result = await db.notations.delete_many({"user_id": user_id})
+    deleted_counts["notations"] = result.deleted_count
+    
+    # Delete user's feedback
+    result = await db.feedback.delete_many({"user_id": user_id})
+    deleted_counts["feedback"] = result.deleted_count
+    
+    # Delete password reset tokens
+    result = await db.password_reset_tokens.delete_many({"email": user.get("email")})
+    deleted_counts["reset_tokens"] = result.deleted_count
+    
+    # Finally delete the user account
+    result = await db.users.delete_one({"id": user_id})
+    deleted_counts["user"] = result.deleted_count
+    
+    # Log this critical action with full details
+    await log_admin_action(
+        admin["id"], 
+        "permanent_delete_user", 
+        f"PERMANENTLY DELETED user {user.get('email')} ({user.get('name')}). Data removed: {deleted_counts}"
+    )
+    
+    return {
+        "message": f"User {user.get('email')} and all associated data permanently deleted",
+        "deleted_counts": deleted_counts
+    }
+
 @api_router.get("/admin/users/export")
 async def admin_export_users(admin: dict = Depends(require_admin)):
     """Export all user data as Excel"""
