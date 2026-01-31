@@ -1242,9 +1242,11 @@ export default function VehicleCalculatorPage() {
                   <p className="font-medium text-foreground">Required columns:</p>
                   <p>• make, model, year, vehicle_type, cif_value, country_of_origin</p>
                   <p className="font-medium text-foreground mt-2">Optional columns:</p>
-                  <p>• vin, engine_size_cc, is_new, mileage, color</p>
+                  <p>• vin, body_style, engine_size_cc, is_new, mileage, color</p>
                   <p className="font-medium text-foreground mt-2">Vehicle types:</p>
                   <p>• electric, hybrid, gasoline, diesel, commercial</p>
+                  <p className="font-medium text-foreground mt-2">Body styles:</p>
+                  <p>• sedan, suv, hatchback, pickup, coupe, wagon, minivan, etc.</p>
                 </div>
               </CardContent>
             </Card>
