@@ -303,7 +303,7 @@ export default function ClassificationResultPage() {
                       key={index} 
                       data-testid={`item-row-${index}`}
                       className={cn(
-                        item.review_status === 'user_updated' && 'bg-yellow-500/10 border-l-2 border-l-yellow-500'
+                        item.review_status === 'user_updated' && 'bg-purple-500/10 border-l-2 border-l-purple-500'
                       )}
                     >
                       <td className="text-muted-foreground font-mono text-xs">{index + 1}</td>
