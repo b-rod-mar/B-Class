@@ -3367,6 +3367,112 @@ async def root():
 async def health_check():
     return {"status": "healthy"}
 
+# ============= WEEKLY ACCOUNT LOG SCHEDULER =============
+import asyncio
+from contextlib import asynccontextmanager
+
+async def send_weekly_account_log():
+    """Send weekly log of newly created accounts to admin email"""
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    
+    ADMIN_EMAIL = "gfp6ixhc@yourfeedback.anonaddy.me"
+    
+    # Calculate date range (last 7 days)
+    end_date = datetime.now(timezone.utc)
+    start_date = end_date - timedelta(days=7)
+    
+    try:
+        # Get accounts created in the last week
+        users = await db.users.find(
+            {
+                "created_at": {
+                    "$gte": start_date.isoformat(),
+                    "$lte": end_date.isoformat()
+                }
+            },
+            {"_id": 0, "name": 1, "email": 1, "created_at": 1, "company": 1}
+        ).to_list(1000)
+        
+        if not users:
+            logger.info("Weekly account log: No new accounts this week")
+            return
+        
+        # Build email content
+        account_list = ""
+        for i, user in enumerate(users, 1):
+            account_list += f"{i}. {user.get('name', 'N/A')} - {user.get('email', 'N/A')}"
+            if user.get('company'):
+                account_list += f" ({user.get('company')})"
+            account_list += f"\n   Created: {user.get('created_at', 'Unknown')}\n\n"
+        
+        email_body = f"""
+Weekly Account Creation Report - Class-B HS Code Agent
+
+Report Period: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}
+Total New Accounts: {len(users)}
+
+New Accounts:
+{account_list}
+---
+Generated: {datetime.now(timezone.utc).isoformat()}
+This is an automated weekly report.
+"""
+        
+        logger.info(f"Weekly account log: {len(users)} new accounts")
+        print(f"Weekly Account Log - {len(users)} accounts created this week")
+        
+        # Store log in database for reference
+        await db.weekly_logs.insert_one({
+            "id": str(uuid.uuid4()),
+            "type": "account_creation",
+            "period_start": start_date.isoformat(),
+            "period_end": end_date.isoformat(),
+            "account_count": len(users),
+            "accounts": [{"name": u.get("name"), "email": u.get("email")} for u in users],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        # Send email
+        smtp_host = os.environ.get('SMTP_HOST', 'localhost')
+        smtp_port = int(os.environ.get('SMTP_PORT', 25))
+        
+        msg = MIMEMultipart()
+        msg['From'] = f"Class-B Agent <noreply@classb-agent.com>"
+        msg['To'] = ADMIN_EMAIL
+        msg['Subject'] = f"[Class-B Agent] Weekly Account Report - {len(users)} New Accounts"
+        msg.attach(MIMEText(email_body, 'plain'))
+        
+        if os.environ.get('SMTP_HOST'):
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+                server.sendmail(msg['From'], [ADMIN_EMAIL], msg.as_string())
+                
+    except Exception as e:
+        logger.error(f"Weekly account log failed: {str(e)}")
+        print(f"Weekly account log error: {str(e)}")
+
+async def weekly_log_scheduler():
+    """Background task to run weekly account log every 7 days"""
+    while True:
+        try:
+            # Wait for 7 days (604800 seconds)
+            # For testing, you can change this to a shorter interval
+            await asyncio.sleep(604800)  # 7 days in seconds
+            await send_weekly_account_log()
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            logger.error(f"Weekly scheduler error: {str(e)}")
+            await asyncio.sleep(3600)  # Retry in 1 hour on error
+
+# Manual trigger for weekly log (for testing or admin use)
+@api_router.post("/admin/trigger-weekly-log")
+async def trigger_weekly_log(user: dict = Depends(require_admin)):
+    """Manually trigger weekly account log (admin only)"""
+    await send_weekly_account_log()
+    return {"message": "Weekly account log triggered successfully"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
