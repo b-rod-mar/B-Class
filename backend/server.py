@@ -1530,6 +1530,65 @@ async def export_alcohol_batch(batch_id: str, format: str = "csv", user: dict = 
             headers={"Content-Disposition": f"attachment; filename=alcohol_batch_{batch_id[:8]}.csv"}
         )
 
+# ============= CMA REGULATIONS MODULE =============
+
+class CMARegulationResponse(BaseModel):
+    id: str
+    category: str
+    section: str
+    title: str
+    reference: str
+    content: str
+    keywords: List[str]
+    created_at: datetime
+
+@api_router.get("/cma/search", response_model=List[CMARegulationResponse])
+async def search_cma_regulations(
+    q: Optional[str] = None,
+    category: Optional[str] = None,
+    user: dict = Depends(get_current_user)
+):
+    """Search CMA regulations by keyword or category"""
+    query = {}
+    
+    if q:
+        search_terms = q.lower().split()
+        query["$or"] = [
+            {"title": {"$regex": q, "$options": "i"}},
+            {"content": {"$regex": q, "$options": "i"}},
+            {"reference": {"$regex": q, "$options": "i"}},
+            {"keywords": {"$in": search_terms}}
+        ]
+    
+    if category:
+        query["category"] = {"$regex": category, "$options": "i"}
+    
+    regulations = await db.cma_regulations.find(query, {"_id": 0}).to_list(100)
+    
+    for reg in regulations:
+        if isinstance(reg.get("created_at"), str):
+            reg["created_at"] = datetime.fromisoformat(reg["created_at"])
+    
+    return regulations
+
+@api_router.get("/cma/categories")
+async def get_cma_categories(user: dict = Depends(get_current_user)):
+    """Get all CMA regulation categories"""
+    categories = await db.cma_regulations.distinct("category")
+    return {"categories": categories}
+
+@api_router.get("/cma/regulations/{reg_id}", response_model=CMARegulationResponse)
+async def get_cma_regulation(reg_id: str, user: dict = Depends(get_current_user)):
+    """Get specific CMA regulation by ID"""
+    regulation = await db.cma_regulations.find_one({"id": reg_id}, {"_id": 0})
+    if not regulation:
+        raise HTTPException(status_code=404, detail="Regulation not found")
+    
+    if isinstance(regulation.get("created_at"), str):
+        regulation["created_at"] = datetime.fromisoformat(regulation["created_at"])
+    
+    return regulation
+
 # ============= ROOT ROUTE =============
 @api_router.get("/")
 async def root():
