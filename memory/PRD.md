@@ -218,6 +218,10 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] **Generate Invoice (Vehicle)** - Excel export with complete duty breakdown
 - [x] **Generate Invoice (Alcohol)** - Excel export with product and duty details
 - [x] **Invoice Disclaimer** - Includes "estimate only" disclaimer and generation timestamp
+- [x] **Alcohol History Export** - Export All (Excel) button in history section
+- [x] **Vehicle History Export** - Export All (Excel) button in history section
+- [x] **Excel Format** - Comprehensive data including all calculation fields
+- [x] **Backend Endpoints** - `/api/alcohol/history/export` and `/api/vehicle/history/export`
 
 ### Terms of Use (Jan 31, 2026)
 - [x] **Dashboard Integration** - Terms of Use button at dashboard footer
