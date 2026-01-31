@@ -15,7 +15,8 @@ import {
   FileText,
   Globe,
   StickyNote,
-  Calculator
+  Calculator,
+  Car
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useState } from 'react';
@@ -26,6 +27,7 @@ const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/upload', label: 'Upload & Classify', icon: Upload },
   { path: '/alcohol-calculator', label: 'Alcohol Calculator', icon: Wine },
+  { path: '/vehicle-calculator', label: 'Vehicle Calculator', icon: Car },
   { path: '/tariffs', label: 'Tariffs & Duties', icon: Calculator },
   { path: '/history', label: 'Classification History', icon: History },
   { path: '/hs-library', label: 'HS Code Library', icon: BookOpen },
