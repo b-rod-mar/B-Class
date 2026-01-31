@@ -537,7 +537,8 @@ export default function TariffsDutiesPage() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+          ))
+          )}
 
           <Card className="bg-muted/30">
             <CardContent className="pt-6">
