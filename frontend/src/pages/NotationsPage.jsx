@@ -177,6 +177,14 @@ export default function NotationsPage() {
     );
   }
 
+  // Calculate stats
+  const stats = {
+    total: notations.length,
+    entries: notations.filter(n => n.reference_type === 'entry').length,
+    tariffs: notations.filter(n => n.reference_type === 'tariff_code').length,
+    general: notations.filter(n => n.reference_type === 'general').length,
+  };
+
   return (
     <div className="space-y-6 animate-fade-in" data-testid="notations-page">
       {/* Header */}
@@ -199,6 +207,36 @@ export default function NotationsPage() {
           New Notation
         </Button>
       </div>
+
+      {/* Stats Cards */}
+      {notations.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-card/50">
+            <CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold font-['Chivo'] text-foreground">{stats.total}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Notes</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-blue-500/10 border-blue-500/20">
+            <CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold font-['Chivo'] text-blue-400">{stats.entries}</p>
+              <p className="text-xs text-blue-400/70 uppercase tracking-wider">Entry Refs</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-emerald-500/10 border-emerald-500/20">
+            <CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold font-['Chivo'] text-emerald-400">{stats.tariffs}</p>
+              <p className="text-xs text-emerald-400/70 uppercase tracking-wider">Tariff Codes</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-violet-500/10 border-violet-500/20">
+            <CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold font-['Chivo'] text-violet-400">{stats.general}</p>
+              <p className="text-xs text-violet-400/70 uppercase tracking-wider">General Notes</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Search & Filter */}
       <Card>
