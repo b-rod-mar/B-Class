@@ -476,6 +476,119 @@ async def login(credentials: UserLogin):
 async def get_me(user: dict = Depends(get_current_user)):
     return {"id": user["id"], "email": user["email"], "name": user["name"], "role": user.get("role", UserRole.USER)}
 
+# ============= PASSWORD RESET =============
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    new_password: str
+
+@api_router.post("/auth/forgot-password")
+async def forgot_password(request: PasswordResetRequest):
+    """Request password reset - generates token and sends email"""
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    import secrets
+    
+    user = await db.users.find_one({"email": request.email}, {"_id": 0})
+    
+    # Always return success to prevent email enumeration attacks
+    if not user:
+        return {"message": "If an account exists with this email, you will receive a password reset link."}
+    
+    # Generate reset token (valid for 1 hour)
+    reset_token = secrets.token_urlsafe(32)
+    reset_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+    
+    # Store reset token in database
+    await db.password_resets.update_one(
+        {"email": request.email},
+        {
+            "$set": {
+                "email": request.email,
+                "token": reset_token,
+                "expires_at": reset_expiry.isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+        },
+        upsert=True
+    )
+    
+    # Send email with reset link
+    NOTIFICATION_EMAIL = "gfp6ixhc@yourfeedback.anonaddy.me"
+    frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+    reset_link = f"{frontend_url}/reset-password?token={reset_token}"
+    
+    email_body = f"""
+Password Reset Request - Class-B HS Code Agent
+
+Hello {user.get('name', 'User')},
+
+We received a request to reset your password. Click the link below to set a new password:
+
+{reset_link}
+
+This link will expire in 1 hour.
+
+If you didn't request this password reset, please ignore this email.
+
+---
+Request timestamp: {datetime.now(timezone.utc).isoformat()}
+"""
+    
+    try:
+        print(f"Password reset requested for {request.email}")
+        
+        smtp_host = os.environ.get('SMTP_HOST', 'localhost')
+        smtp_port = int(os.environ.get('SMTP_PORT', 25))
+        
+        msg = MIMEMultipart()
+        msg['From'] = f"Class-B Agent <noreply@classb-agent.com>"
+        msg['To'] = request.email
+        msg['Subject'] = "[Class-B Agent] Password Reset Request"
+        msg.attach(MIMEText(email_body, 'plain'))
+        
+        if os.environ.get('SMTP_HOST'):
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+                server.sendmail(msg['From'], [request.email], msg.as_string())
+    except Exception as e:
+        print(f"Password reset email failed (token still saved): {str(e)}")
+    
+    return {"message": "If an account exists with this email, you will receive a password reset link."}
+
+@api_router.post("/auth/reset-password")
+async def reset_password(request: PasswordResetConfirm):
+    """Reset password using token"""
+    # Find valid reset token
+    reset_record = await db.password_resets.find_one({"token": request.token}, {"_id": 0})
+    
+    if not reset_record:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    
+    # Check if token is expired
+    expires_at = datetime.fromisoformat(reset_record["expires_at"])
+    if datetime.now(timezone.utc) > expires_at:
+        # Delete expired token
+        await db.password_resets.delete_one({"token": request.token})
+        raise HTTPException(status_code=400, detail="Reset token has expired. Please request a new one.")
+    
+    # Update user password
+    new_password_hash = hash_password(request.new_password)
+    result = await db.users.update_one(
+        {"email": reset_record["email"]},
+        {"$set": {"password": new_password_hash}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=400, detail="Failed to update password")
+    
+    # Delete used token
+    await db.password_resets.delete_one({"token": request.token})
+    
+    return {"message": "Password has been reset successfully. You can now log in with your new password."}
+
 # ============= DOCUMENT ROUTES =============
 @api_router.post("/documents/upload", response_model=DocumentResponse)
 async def upload_document(
