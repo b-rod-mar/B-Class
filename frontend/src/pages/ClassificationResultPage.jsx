@@ -345,17 +345,26 @@ export default function ClassificationResultPage() {
                         </div>
                       </td>
                       <td>
-                        <Badge 
-                          variant="outline"
-                          className="text-xs"
-                          style={item.review_status === 'user_updated' ? {
-                            backgroundColor: 'rgba(168, 85, 247, 0.2)',
-                            color: '#c084fc',
-                            borderColor: 'rgba(168, 85, 247, 0.3)'
-                          } : undefined}
-                        >
-                          {item.review_status === 'user_updated' ? 'User Updated' : getStatusLabel(item.review_status)}
-                        </Badge>
+                        {item.review_status === 'user_updated' ? (
+                          <Badge 
+                            variant="outline"
+                            className="text-xs"
+                            style={{
+                              backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                              color: '#c084fc',
+                              borderColor: 'rgba(168, 85, 247, 0.3)'
+                            }}
+                          >
+                            User Updated
+                          </Badge>
+                        ) : (
+                          <Badge 
+                            variant="outline"
+                            className={cn("text-xs", getStatusColor(item.review_status))}
+                          >
+                            {getStatusLabel(item.review_status)}
+                          </Badge>
+                        )}
                       </td>
                       <td>
                         <div className="flex gap-1">
