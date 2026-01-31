@@ -40,6 +40,24 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+  
+  if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
+};
+
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   
