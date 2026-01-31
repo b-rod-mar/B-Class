@@ -634,10 +634,10 @@ export default function VehicleCalculatorPage() {
                 )}
 
                 {/* Concessionary Rates */}
-                <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label htmlFor="concession">Apply for Concessionary Rate?</Label>
+                      <Label htmlFor="concession" className="text-emerald-400">Apply for Concessionary Rate?</Label>
                       <p className="text-xs text-muted-foreground">Special reduced rates for eligible persons</p>
                     </div>
                     <Switch
@@ -646,26 +646,31 @@ export default function VehicleCalculatorPage() {
                       onCheckedChange={(checked) => setFormData({ 
                         ...formData, 
                         qualifies_for_concession: checked,
-                        concession_type: checked ? formData.concession_type : ''
+                        concession_type: checked ? 'first_vehicle' : ''
                       })}
                       data-testid="concession-switch"
                     />
                   </div>
                   
                   {formData.qualifies_for_concession && (
-                    <Select 
-                      value={formData.concession_type} 
-                      onValueChange={(value) => setFormData({ ...formData, concession_type: value })}
-                    >
-                      <SelectTrigger data-testid="concession-type-select">
-                        <SelectValue placeholder="Select concession type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CONCESSION_TYPES.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <>
+                      <Select 
+                        value={formData.concession_type} 
+                        onValueChange={(value) => setFormData({ ...formData, concession_type: value })}
+                      >
+                        <SelectTrigger data-testid="concession-type-select">
+                          <SelectValue placeholder="Select concession type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CONCESSION_TYPES.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-emerald-400/70">
+                        Note: You must provide supporting documentation to Customs to qualify for concessionary rates.
+                      </p>
+                    </>
                   )}
                 </div>
 
