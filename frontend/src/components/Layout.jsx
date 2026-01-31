@@ -145,6 +145,19 @@ export default function Layout() {
                   <Settings className="h-4 w-4 mr-2" />
                   Account Settings
                 </DropdownMenuItem>
+                {(user?.role === 'admin' || user?.role === 'super_admin') && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => { setSidebarOpen(false); navigate('/admin'); }}
+                      className="text-purple-400 focus:text-purple-300 focus:bg-purple-500/10"
+                      data-testid="admin-menu-item"
+                    >
+                      <Shield className="h-4 w-4 mr-2" />
+                      Admin Dashboard
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={handleLogout}
