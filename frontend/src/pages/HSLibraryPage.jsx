@@ -349,6 +349,155 @@ export default function HSLibraryPage() {
         </Card>
       )}
 
+        </TabsContent>
+
+        {/* Import Tab */}
+        <TabsContent value="import">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileSpreadsheet className="h-5 w-5" />
+                Import HS Codes from File
+              </CardTitle>
+              <CardDescription>
+                Upload a CSV or Excel file to bulk import HS codes into your library
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Download Template */}
+              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                <div>
+                  <p className="font-medium">Download Import Template</p>
+                  <p className="text-sm text-muted-foreground">
+                    Use our template to ensure proper formatting
+                  </p>
+                </div>
+                <Button variant="outline" onClick={downloadImportTemplate} data-testid="download-import-template">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Template
+                </Button>
+              </div>
+
+              {/* Drop Zone */}
+              <div
+                className={cn(
+                  "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
+                  isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25",
+                  importFile && "border-green-500 bg-green-500/5"
+                )}
+                onDragEnter={handleDrag}
+                onDragOver={handleDrag}
+                onDragLeave={handleDrag}
+                onDrop={handleDrop}
+                data-testid="import-drop-zone"
+              >
+                {importFile ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <CheckCircle className="h-12 w-12 text-green-500" />
+                    <div>
+                      <p className="font-medium">{importFile.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {(importFile.size / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setImportFile(null)}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <Upload className="h-12 w-12 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">
+                        Drag and drop your file here
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        or click to browse (CSV, XLSX)
+                      </p>
+                    </div>
+                    <label>
+                      <Input
+                        type="file"
+                        accept=".csv,.xlsx,.xls"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        data-testid="import-file-input"
+                      />
+                      <Button variant="outline" asChild>
+                        <span>Browse Files</span>
+                      </Button>
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* Import Button */}
+              {importFile && (
+                <Button
+                  onClick={handleImport}
+                  disabled={importing}
+                  className="w-full"
+                  data-testid="import-submit-btn"
+                >
+                  {importing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Import HS Codes
+                    </>
+                  )}
+                </Button>
+              )}
+
+              {/* Import Results */}
+              {importResult && (
+                <Card className="bg-muted/30">
+                  <CardContent className="pt-4">
+                    <h4 className="font-medium mb-3">Import Results</h4>
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <p className="text-2xl font-bold text-green-500">{importResult.imported}</p>
+                        <p className="text-xs text-muted-foreground">New Codes Added</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-blue-500">{importResult.updated}</p>
+                        <p className="text-xs text-muted-foreground">Codes Updated</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-rose-500">{importResult.errors?.length || 0}</p>
+                        <p className="text-xs text-muted-foreground">Errors</p>
+                      </div>
+                    </div>
+                    {importResult.errors?.length > 0 && (
+                      <div className="mt-4 p-3 bg-rose-500/10 rounded text-sm">
+                        <p className="font-medium text-rose-400 mb-2">Errors:</p>
+                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                          {importResult.errors.slice(0, 5).map((err, i) => (
+                            <li key={i}>{err}</li>
+                          ))}
+                          {importResult.errors.length > 5 && (
+                            <li>...and {importResult.errors.length - 5} more</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
       {/* Add/Edit Dialog */}
       <Dialog open={editingCode !== null} onOpenChange={() => setEditingCode(null)}>
         <DialogContent className="max-w-2xl">
