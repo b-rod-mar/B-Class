@@ -512,6 +512,48 @@ export default function AdminDashboardPage() {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Classi AI Knowledge Card */}
+          <Card className="border-purple-500/20">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#00778B] via-[#FFC72C] to-[#000] flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">C</span>
+                </div>
+                <div>
+                  <CardTitle>Classi AI Knowledge Base</CardTitle>
+                  <CardDescription>Add custom information for Classi to use when helping users</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                <p className="text-sm text-purple-300">
+                  <Info className="h-4 w-4 inline mr-2" />
+                  Any information added here will be included in Classi's knowledge when answering user questions. 
+                  Use this to add updates about regulations, new procedures, or company-specific guidance.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label>Additional Knowledge for Classi</Label>
+                <Textarea 
+                  value={settings.classi_knowledge || ''} 
+                  onChange={(e) => setSettings({ ...settings, classi_knowledge: e.target.value })}
+                  placeholder="Example: As of January 2026, the new EPA agreement affects duty rates on certain EU goods. Users should check form C-18 for EPA preferential treatment claims..."
+                  rows={8}
+                  className="font-mono text-sm"
+                  data-testid="classi-knowledge-textarea"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Format tips: Use clear headings, bullet points, and specific details. This text is sent directly to the AI.
+                </p>
+              </div>
+              <Button onClick={handleUpdateSettings} disabled={saving} className="w-full" data-testid="save-classi-knowledge-btn">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Update Classi Knowledge
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Audit Logs Tab */}
