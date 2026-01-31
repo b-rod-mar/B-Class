@@ -283,7 +283,13 @@ export default function ClassificationResultPage() {
                 </thead>
                 <tbody>
                   {classification.items.map((item, index) => (
-                    <tr key={index} data-testid={`item-row-${index}`}>
+                    <tr 
+                      key={index} 
+                      data-testid={`item-row-${index}`}
+                      className={cn(
+                        item.review_status === 'user_updated' && 'bg-yellow-500/10 border-l-2 border-l-yellow-500'
+                      )}
+                    >
                       <td className="text-muted-foreground font-mono text-xs">{index + 1}</td>
                       <td>
                         <div className="max-w-xs">
@@ -323,8 +329,13 @@ export default function ClassificationResultPage() {
                         </div>
                       </td>
                       <td>
-                        <Badge className={cn("text-xs", getStatusColor(item.review_status))}>
-                          {getStatusLabel(item.review_status)}
+                        <Badge className={cn(
+                          "text-xs",
+                          item.review_status === 'user_updated' 
+                            ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                            : getStatusColor(item.review_status)
+                        )}>
+                          {item.review_status === 'user_updated' ? 'User Updated' : getStatusLabel(item.review_status)}
                         </Badge>
                       </td>
                       <td>
