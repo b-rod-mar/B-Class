@@ -329,14 +329,38 @@ export default function AlcoholCalculatorPage() {
             Calculate duties, excise, VAT & fees for Bahamas alcohol imports
           </p>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={() => setShowHistory(!showHistory)}
-          data-testid="toggle-history-btn"
-        >
-          <History className="h-4 w-4 mr-2" />
-          {showHistory ? 'Hide History' : 'View History'}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={async () => {
+              try {
+                const response = await api.get('/alcohol/guide', { responseType: 'blob' });
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'Bahamas_Alcohol_Duty_Guide.pdf');
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                toast.success('Guide downloaded!');
+              } catch (error) {
+                toast.error('Failed to download guide');
+              }
+            }}
+            data-testid="download-guide-btn"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Download Guide
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowHistory(!showHistory)}
+            data-testid="toggle-history-btn"
+          >
+            <History className="h-4 w-4 mr-2" />
+            {showHistory ? 'Hide History' : 'View History'}
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="single" className="w-full">
