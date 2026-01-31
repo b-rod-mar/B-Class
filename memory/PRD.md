@@ -319,6 +319,19 @@ Build an AI HS Code Classification web application for imports into The Bahamas,
 - [x] Auto-sets status to "user_updated" when saving changes from "needs_review"
 - [x] Added "User Updated" count summary card to classification results
 
+### Notations Page UI (Jan 31, 2026)
+- [x] **Stats Cards** - Total Notes, Entry Refs, Tariff Codes, General Notes counts
+- [x] **Search & Filter** - Search notations, filter by reference type
+- [x] **Note Cards** - Color-coded by type with label, content preview, date
+- [x] **CRUD Operations** - Create, edit, delete notations
+- [x] **100-Word Limit** - Word counter in dialog with validation
+
+### Classification Result Enhancements (Jan 31, 2026)
+- [x] **User Updated Status** - New status option for edited items
+- [x] **Yellow Highlighting** - Visual indicator for user-updated rows
+- [x] **Search HS Library Link** - Opens HS Library in new tab from edit dialog
+- [x] **Auto Status Update** - Changes "needs_review" to "user_updated" on save
+- [x] **User Updated Summary Card** - Shows count of user-edited items
 ### Alcohol Calculator Enhancements (Jan 31, 2026)
 - [x] **Download Guide PDF** - "Download Guide" button next to "View History"
 - [x] **PDF Content** - Duty rates, excise calculations, LPA formula, VAT, license fees
