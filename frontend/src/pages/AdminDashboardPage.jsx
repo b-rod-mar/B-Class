@@ -837,6 +837,89 @@ export default function AdminDashboardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <Dialog open={deleteUserOpen} onOpenChange={(open) => { 
+        setDeleteUserOpen(open); 
+        if (!open) {
+          setDeleteConfirmText('');
+          setSelectedUser(null);
+        }
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-rose-500 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Permanently Delete User
+            </DialogTitle>
+            <DialogDescription className="text-rose-400/80">
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4 py-4">
+              <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-lg space-y-3">
+                <p className="text-sm font-medium text-rose-400">
+                  You are about to permanently delete:
+                </p>
+                <div className="bg-background/50 p-3 rounded border border-border">
+                  <p className="font-semibold">{selectedUser.name}</p>
+                  <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
+                  {selectedUser.company && (
+                    <p className="text-xs text-muted-foreground">{selectedUser.company}</p>
+                  )}
+                </div>
+                <div className="text-sm text-rose-300 space-y-1">
+                  <p className="font-medium">The following data will be permanently removed:</p>
+                  <ul className="list-disc list-inside text-rose-400/70 text-xs space-y-0.5">
+                    <li>User account and profile</li>
+                    <li>All classifications and documents</li>
+                    <li>All alcohol calculations and batches</li>
+                    <li>All vehicle calculations and batches</li>
+                    <li>All notations and feedback</li>
+                    <li>Password reset tokens</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-sm">
+                  Type <span className="font-mono font-bold text-rose-400">DELETE</span> to confirm:
+                </Label>
+                <Input 
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())}
+                  placeholder="Type DELETE to confirm"
+                  className="border-rose-500/30 focus:border-rose-500"
+                  data-testid="delete-confirm-input"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => { setDeleteUserOpen(false); setDeleteConfirmText(''); setSelectedUser(null); }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={handlePermanentDeleteUser} 
+              disabled={deleting || deleteConfirmText !== 'DELETE'}
+              className="bg-rose-600 hover:bg-rose-700"
+              data-testid="confirm-delete-user"
+            >
+              {deleting ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              Permanently Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
