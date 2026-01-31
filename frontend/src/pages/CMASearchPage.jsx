@@ -245,7 +245,7 @@ export default function CMASearchPage() {
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
               Found <span className="font-semibold text-foreground">{regulations.length}</span> regulations
-              {searchQuery && <> matching "<span className="text-primary">{searchQuery}</span>"</>}
+              {searchQuery && <> matching &quot;<span className="text-primary">{searchQuery}</span>&quot;</>}
             </p>
           </div>
 

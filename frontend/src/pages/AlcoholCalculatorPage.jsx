@@ -640,7 +640,7 @@ export default function AlcoholCalculatorPage() {
                 <Calculator className="h-12 w-12 text-muted-foreground opacity-50 mb-4" />
                 <p className="text-muted-foreground mb-2">No calculation yet</p>
                 <p className="text-sm text-muted-foreground/70">
-                  Fill in the shipment details and click "Calculate Duties"
+                  Fill in the shipment details and click &quot;Calculate Duties&quot;
                 </p>
               </CardContent>
             </Card>
